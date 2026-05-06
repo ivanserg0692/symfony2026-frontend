@@ -1,83 +1,97 @@
 "use client";
 
 import type { AuthProvider } from "@refinedev/core";
-import Cookies from "js-cookie";
+import { ApiError, apiFetch, getCsrfToken } from "@/lib/api-client";
 
-const mockUsers = [
-  {
-    name: "John Doe",
-    email: "johndoe@mail.com",
-    roles: ["admin"],
-    avatar: "https://i.pravatar.cc/150?img=1",
-  },
-  {
-    name: "Jane Doe",
-    email: "janedoe@mail.com",
-    roles: ["editor"],
-    avatar: "https://i.pravatar.cc/150?img=1",
-  },
-];
+type UserIdentity = {
+  id?: number;
+  email?: string;
+  name?: string;
+  roles?: string[];
+};
 
 export const authProviderClient: AuthProvider = {
-  login: async ({ email, username, password, remember }) => {
-    // Suppose we actually send a request to the back end here.
-    const user = mockUsers[0];
-
-    if (user) {
-      Cookies.set("auth", JSON.stringify(user), {
-        expires: 30, // 30 days
-        path: "/",
+  login: async ({ email, username, password, turnstileToken }) => {
+    try {
+      const csrf = await getCsrfToken("authenticate");
+      await apiFetch("/auth/login", {
+        method: "POST",
+        headers: {
+          [csrf.header_name]: csrf.token,
+        },
+        body: JSON.stringify({
+          email: email ?? username,
+          password,
+          turnstileToken: turnstileToken ?? "",
+        }),
       });
+
       return {
         success: true,
         redirectTo: "/",
       };
-    }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Invalid username or password";
 
-    return {
-      success: false,
-      error: {
-        name: "LoginError",
-        message: "Invalid username or password",
-      },
-    };
+      return {
+        success: false,
+        error: {
+          name: "LoginError",
+          message,
+        },
+      };
+    }
   },
   logout: async () => {
-    Cookies.remove("auth", { path: "/" });
+    const csrf = await getCsrfToken("api_mutation");
+
+    await apiFetch("/auth/logout", {
+      method: "POST",
+      headers: {
+        [csrf.header_name]: csrf.token,
+      },
+    });
+
     return {
       success: true,
       redirectTo: "/login",
     };
   },
   check: async () => {
-    const auth = Cookies.get("auth");
-    if (auth) {
+    try {
+      await apiFetch("/auth/me");
+
       return {
         authenticated: true,
       };
-    }
+    } catch (error) {
+      if (error instanceof ApiError && error.status !== 401) {
+        return { authenticated: false, error };
+      }
 
-    return {
-      authenticated: false,
-      logout: true,
-      redirectTo: "/login",
-    };
+      return {
+        authenticated: false,
+        logout: true,
+        redirectTo: "/login",
+      };
+    }
   },
   getPermissions: async () => {
-    const auth = Cookies.get("auth");
-    if (auth) {
-      const parsedUser = JSON.parse(auth);
-      return parsedUser.roles;
+    try {
+      const user = await apiFetch<UserIdentity>("/auth/me");
+
+      return user.roles ?? null;
+    } catch {
+      return null;
     }
-    return null;
   },
   getIdentity: async () => {
-    const auth = Cookies.get("auth");
-    if (auth) {
-      const parsedUser = JSON.parse(auth);
-      return parsedUser;
+    try {
+      return await apiFetch<UserIdentity>("/auth/me");
+    } catch {
+      return null;
     }
-    return null;
   },
   onError: async (error) => {
     if (error.response?.status === 401) {

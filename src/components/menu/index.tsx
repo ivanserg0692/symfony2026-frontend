@@ -1,11 +1,13 @@
 "use client";
 
-import { useLogout, useMenu } from "@refinedev/core";
+import { useIsAuthenticated, useLogout, useMenu } from "@refinedev/core";
 import Link from "next/link";
 
 export const Menu = () => {
+  const auth = useIsAuthenticated();
   const { mutate: logout } = useLogout();
   const { menuItems, selectedKey } = useMenu();
+  const isAuthenticated = auth.data?.authenticated === true;
 
   return (
     <nav className="menu">
@@ -21,7 +23,14 @@ export const Menu = () => {
           </li>
         ))}
       </ul>
-      <button onClick={() => logout()}>Logout</button>
+      {!auth.isLoading &&
+        (isAuthenticated ? (
+          <button onClick={() => logout()} type="button">
+            Logout
+          </button>
+        ) : (
+          <Link href="/login">Login</Link>
+        ))}
     </nav>
   );
 };

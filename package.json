@@ -13,29 +13,30 @@
     "refine": "refine"
   },
   "dependencies": {
+    "@marsidev/react-turnstile": "^1.5.2",
     "@refinedev/cli": "^2.16.48",
     "@refinedev/core": "^5.0.8",
     "@refinedev/devtools": "^2.0.1",
-    "@refinedev/nextjs-router": "^7.0.0",
     "@refinedev/kbar": "^2.0.0",
+    "@refinedev/nextjs-router": "^7.0.0",
+    "@refinedev/simple-rest": "^6.0.0",
+    "js-cookie": "^3.0.5",
     "next": "^15.2.4",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "@refinedev/simple-rest": "^6.0.0",
-    "js-cookie": "^3.0.5"
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/js-cookie": "^3.0.6",
+    "@types/node": "^20",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
-    "@types/node": "^20",
-    "typescript": "^5.8.3",
     "cross-env": "^7.0.3",
     "eslint": "^8",
     "eslint-config-next": "^15.0.3",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
     "postcss": "^8",
-    "@types/js-cookie": "^3.0.6"
+    "tailwindcss": "^4",
+    "typescript": "^5.8.3"
   },
   "refine": {
     "projectId": "lTmBHr-9dDGf0-4VaWng"
