@@ -13,8 +13,14 @@ export const ru = {
       logout: "Выйти",
     },
   },
+  actions: {
+    show: "Просмотр",
+  },
   common: {
     loading: "Загрузка...",
+  },
+  buttons: {
+    show: "Просмотр",
   },
   language: {
     en: "EN",
@@ -43,4 +49,3 @@ export const ru = {
     news: "Новости",
   },
 };
-

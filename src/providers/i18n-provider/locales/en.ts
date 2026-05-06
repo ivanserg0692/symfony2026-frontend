@@ -13,8 +13,14 @@ export const en = {
       logout: "Logout",
     },
   },
+  actions: {
+    show: "View",
+  },
   common: {
     loading: "Loading...",
+  },
+  buttons: {
+    show: "View",
   },
   language: {
     en: "EN",
@@ -43,4 +49,3 @@ export const en = {
     news: "News",
   },
 };
-
