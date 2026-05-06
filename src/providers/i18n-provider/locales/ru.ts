@@ -3,7 +3,9 @@ export const ru = {
     login: {
       title: "Войти",
       email: "Email",
+      emailRequired: "Укажите email.",
       password: "Пароль",
+      passwordRequired: "Укажите пароль.",
       submit: "Войти",
       pending: "Входим...",
       turnstileMissing: "Ключ Turnstile не настроен.",
@@ -11,6 +13,12 @@ export const ru = {
     actions: {
       login: "Войти",
       logout: "Выйти",
+    },
+  },
+  theme: {
+    actions: {
+      dark: "Темная тема",
+      light: "Светлая тема",
     },
   },
   actions: {

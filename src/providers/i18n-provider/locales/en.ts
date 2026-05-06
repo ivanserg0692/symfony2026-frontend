@@ -3,7 +3,9 @@ export const en = {
     login: {
       title: "Sign in",
       email: "Email",
+      emailRequired: "Enter email.",
       password: "Password",
+      passwordRequired: "Enter password.",
       submit: "Sign in",
       pending: "Signing in...",
       turnstileMissing: "Turnstile site key is not configured.",
@@ -11,6 +13,12 @@ export const en = {
     actions: {
       login: "Login",
       logout: "Logout",
+    },
+  },
+  theme: {
+    actions: {
+      dark: "Dark theme",
+      light: "Light theme",
     },
   },
   actions: {

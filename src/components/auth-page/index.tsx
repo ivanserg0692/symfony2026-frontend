@@ -6,13 +6,18 @@ import {
   useLogin,
   useTranslate,
 } from "@refinedev/core";
-import type { FormEvent } from "react";
+import { Alert, Button, Card, Form, Input, Typography, theme } from "antd";
 import { useState } from "react";
 
 type LoginVariables = {
   email: string;
   password: string;
   turnstileToken: string;
+};
+
+type LoginFormValues = {
+  email?: string;
+  password?: string;
 };
 
 const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -49,6 +54,7 @@ export const AuthPage = (props: AuthPageProps) => {
 const LoginPage = () => {
   const login = useLogin<LoginVariables>();
   const translate = useTranslate();
+  const { token } = theme.useToken();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
@@ -60,16 +66,14 @@ const LoginPage = () => {
     !turnstileSiteKey;
   const loginError = login.data?.error ?? login.error;
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
+  const handleFinish = (values: LoginFormValues) => {
     if (isSubmitDisabled) {
       return;
     }
 
     login.mutate({
-      email,
-      password,
+      email: values.email ?? "",
+      password: values.password ?? "",
       turnstileToken,
     });
   };
@@ -78,99 +82,62 @@ const LoginPage = () => {
     <main
       style={{
         alignItems: "center",
-        background: "#f6f7f9",
+        background: token.colorBgLayout,
         display: "flex",
         justifyContent: "center",
         minHeight: "100vh",
         padding: 24,
       }}
     >
-      <form
-        onSubmit={handleSubmit}
+      <Card
         style={{
-          background: "#ffffff",
-          border: "1px solid #d9dde3",
-          borderRadius: 8,
-          boxShadow: "0 16px 40px rgba(15, 23, 42, 0.08)",
           maxWidth: 420,
-          padding: 32,
           width: "100%",
         }}
       >
-        <h1
-          style={{
-            fontSize: 24,
-            lineHeight: "32px",
-            margin: "0 0 24px",
-          }}
-        >
+        <Typography.Title level={2} style={{ marginTop: 0 }}>
           {translate("auth.login.title")}
-        </h1>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 16,
+        </Typography.Title>
+
+        <Form<LoginFormValues>
+          layout="vertical"
+          onFinish={handleFinish}
+          onValuesChange={(_, values) => {
+            setEmail(values.email ?? "");
+            setPassword(values.password ?? "");
           }}
         >
-          <label
-            htmlFor="email-input"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 6,
-            }}
+          <Form.Item
+            label={translate("auth.login.email")}
+            name="email"
+            rules={[
+              {
+                required: true,
+                message: translate("auth.login.emailRequired"),
+              },
+            ]}
           >
-            {translate("auth.login.email")}
-            <input
+            <Input
               autoCapitalize="off"
               autoComplete="email"
               autoCorrect="off"
-              id="email-input"
-              name="email"
-              onChange={(event) => setEmail(event.target.value)}
-              required
               spellCheck={false}
-              style={{
-                border: "1px solid #cbd5e1",
-                borderRadius: 6,
-                fontSize: 16,
-                height: 44,
-                padding: "0 12px",
-                width: "100%",
-              }}
               type="email"
-              value={email}
             />
-          </label>
+          </Form.Item>
 
-          <label
-            htmlFor="password-input"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 6,
-            }}
+          <Form.Item
+            label={translate("auth.login.password")}
+            name="password"
+            rules={[
+              {
+                required: true,
+                message: translate("auth.login.passwordRequired"),
+              },
+            ]}
           >
-            {translate("auth.login.password")}
-            <input
-              autoComplete="current-password"
-              id="password-input"
-              name="password"
-              onChange={(event) => setPassword(event.target.value)}
-              required
-              style={{
-                border: "1px solid #cbd5e1",
-                borderRadius: 6,
-                fontSize: 16,
-                height: 44,
-                padding: "0 12px",
-                width: "100%",
-              }}
-              type="password"
-              value={password}
-            />
-          </label>
+            <Input.Password autoComplete="current-password" />
+          </Form.Item>
 
           <div
             style={{
@@ -185,58 +152,35 @@ const LoginPage = () => {
                 siteKey={turnstileSiteKey}
               />
             ) : (
-              <p
-                style={{
-                  color: "#b45309",
-                  fontSize: 14,
-                  lineHeight: "20px",
-                  margin: 0,
-                }}
-              >
-                {translate("auth.login.turnstileMissing")}
-              </p>
+              <Alert
+                message={translate("auth.login.turnstileMissing")}
+                showIcon
+                type="warning"
+              />
             )}
           </div>
 
           {loginError && (
-            <p
-              style={{
-                background: "#fef2f2",
-                border: "1px solid #fecaca",
-                borderRadius: 6,
-                color: "#991b1b",
-                fontSize: 14,
-                lineHeight: "20px",
-                margin: 0,
-                padding: "10px 12px",
-              }}
-            >
-              {loginError.message}
-            </p>
+            <Form.Item>
+              <Alert message={loginError.message} showIcon type="error" />
+            </Form.Item>
           )}
 
-          <button
-            disabled={isSubmitDisabled}
-            style={{
-              background: isSubmitDisabled ? "#e5e7eb" : "#111827",
-              border: "1px solid transparent",
-              borderRadius: 6,
-              color: isSubmitDisabled ? "#6b7280" : "#ffffff",
-              cursor: isSubmitDisabled ? "not-allowed" : "pointer",
-              fontSize: 16,
-              fontWeight: 600,
-              height: 44,
-              marginTop: 4,
-              width: "100%",
-            }}
-            type="submit"
-          >
-            {login.isPending
-              ? translate("auth.login.pending")
-              : translate("auth.login.submit")}
-          </button>
-        </div>
-      </form>
+          <Form.Item style={{ marginBottom: 0 }}>
+            <Button
+              block
+              disabled={isSubmitDisabled}
+              htmlType="submit"
+              loading={login.isPending}
+              type="primary"
+            >
+              {login.isPending
+                ? translate("auth.login.pending")
+                : translate("auth.login.submit")}
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
     </main>
   );
 };

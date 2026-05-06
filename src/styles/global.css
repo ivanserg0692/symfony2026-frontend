@@ -2,59 +2,11 @@
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
-/* 
-* These styles were added to improve the appearance of the example pages.
-* It is safe to delete them, and they are not intended to be used by Refine components.
-*/
 @layer base {
-  input {
-    @apply border border-gray-300 rounded-sm;
-  }
-
-  input[type="submit"] {
-    @apply bg-[#EFEFEF];
-  }
-
-  button {
-    @apply border border-gray-300 px-2 rounded-sm bg-[#EFEFEF];
-  }
-
-  h1 {
-    @apply text-2xl font-bold my-6;
-  }
-
-  ul {
-    @apply list-disc my-4;
-  }
-
-  a {
-    @apply text-blue-700 underline;
-  }
-
-  label {
-    @apply text-sm font-medium;
-  }
-
   body {
-    @apply m-0 bg-white;
-  }
-
-  table {
-    @apply border border-black border-collapse;
-  }
-
-  table th,
-  table td {
-    @apply m-0 p-2 border-b border-r border-black;
-  }
-
-  table tr:last-child td {
-    @apply border-b-0;
-  }
-
-  table th:last-child,
-  table td:last-child {
-    @apply border-r-0;
+    @apply m-0;
+    background: var(--app-bg);
+    color: var(--app-text);
   }
 
   .news-list {
@@ -148,6 +100,7 @@
 
   .app-layout {
     @apply min-h-screen;
+    background: var(--app-bg);
   }
 
   .app-layout__header {
@@ -156,6 +109,7 @@
 
   .app-layout__content {
     @apply p-6;
+    background: var(--app-bg);
   }
 
   .app-layout__breadcrumb {
@@ -179,4 +133,14 @@
   .app-menu__locale {
     @apply px-1;
   }
+}
+
+:root {
+  --app-bg: #eef1f5;
+  --app-text: rgba(24, 31, 42, 0.88);
+}
+
+:root[data-theme="dark"] {
+  --app-bg: #1f1f1f;
+  --app-text: rgba(255, 255, 255, 0.85);
 }
