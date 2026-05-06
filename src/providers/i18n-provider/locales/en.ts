@@ -22,16 +22,30 @@ export const en = {
   buttons: {
     show: "View",
   },
+  pagination: {
+    go: "Go to",
+    show: "Show",
+  },
+  table: {
+    actions: "Actions",
+  },
   language: {
     en: "EN",
     ru: "RU",
   },
   news: {
     title: "News",
+    titles: {
+      list: "News",
+      show: "News item",
+    },
     fields: {
       author: "Author",
       brief: "Brief",
       created: "Created",
+      createdAt: "Created",
+      createdBy: "Author",
+      description: "Description",
       name: "Name",
       slug: "Slug",
       status: "Status",

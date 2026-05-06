@@ -9,6 +9,5 @@ type NewsRedirectProps = {
 export default async function NewsItemRedirect({ params }: NewsRedirectProps) {
   const { id } = await params;
 
-  redirect(`/ru/news/${id}`);
+  redirect(`/ru/news/show/${id}`);
 }
-

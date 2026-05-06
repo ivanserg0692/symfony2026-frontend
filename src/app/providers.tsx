@@ -23,7 +23,7 @@ export const Providers = ({ children }: PropsWithChildren) => {
             {
               name: "news",
               list: "/:locale/news",
-              show: "/:locale/news/:id",
+              show: "/:locale/news/show/:id",
               meta: {
                 label: "resources.news",
               },
@@ -42,4 +42,3 @@ export const Providers = ({ children }: PropsWithChildren) => {
     </RefineKbarProvider>
   );
 };
-

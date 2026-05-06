@@ -22,16 +22,30 @@ export const ru = {
   buttons: {
     show: "Просмотр",
   },
+  pagination: {
+    go: "Перейти",
+    show: "Показать",
+  },
+  table: {
+    actions: "Действия",
+  },
   language: {
     en: "EN",
     ru: "RU",
   },
   news: {
     title: "Новости",
+    titles: {
+      list: "Новости",
+      show: "Новость",
+    },
     fields: {
       author: "Автор",
       brief: "Кратко",
       created: "Создано",
+      createdAt: "Создано",
+      createdBy: "Автор",
+      description: "Описание",
       name: "Название",
       slug: "Slug",
       status: "Статус",
