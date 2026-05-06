@@ -1,7 +1,11 @@
 "use client";
 import { Turnstile } from "@marsidev/react-turnstile";
 import type { AuthPageProps } from "@refinedev/core";
-import { AuthPage as AuthPageBase, useLogin } from "@refinedev/core";
+import {
+  AuthPage as AuthPageBase,
+  useLogin,
+  useTranslate,
+} from "@refinedev/core";
 import type { FormEvent } from "react";
 import { useState } from "react";
 
@@ -44,6 +48,7 @@ export const AuthPage = (props: AuthPageProps) => {
 
 const LoginPage = () => {
   const login = useLogin<LoginVariables>();
+  const translate = useTranslate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
@@ -99,7 +104,7 @@ const LoginPage = () => {
             margin: "0 0 24px",
           }}
         >
-          Войти
+          {translate("auth.login.title")}
         </h1>
         <div
           style={{
@@ -116,7 +121,7 @@ const LoginPage = () => {
               gap: 6,
             }}
           >
-            Email
+            {translate("auth.login.email")}
             <input
               autoCapitalize="off"
               autoComplete="email"
@@ -147,7 +152,7 @@ const LoginPage = () => {
               gap: 6,
             }}
           >
-            Password
+            {translate("auth.login.password")}
             <input
               autoComplete="current-password"
               id="password-input"
@@ -188,7 +193,7 @@ const LoginPage = () => {
                   margin: 0,
                 }}
               >
-                NEXT_PUBLIC_TURNSTILE_SITE_KEY is not configured.
+                {translate("auth.login.turnstileMissing")}
               </p>
             )}
           </div>
@@ -226,7 +231,9 @@ const LoginPage = () => {
             }}
             type="submit"
           >
-            {login.isPending ? "Входим..." : "Войти"}
+            {login.isPending
+              ? translate("auth.login.pending")
+              : translate("auth.login.submit")}
           </button>
         </div>
       </form>

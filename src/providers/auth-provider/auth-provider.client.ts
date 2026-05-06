@@ -2,12 +2,24 @@
 
 import type { AuthProvider } from "@refinedev/core";
 import { ApiError, apiFetch, getCsrfToken } from "@/lib/api-client";
+import { defaultLocale, getLocalizedPath, getLocaleFromPath } from "@/lib/i18n";
 
 type UserIdentity = {
   id?: number;
   email?: string;
   name?: string;
   roles?: string[];
+};
+
+const getAuthRedirectPath = (path: string) => {
+  if (typeof window === "undefined") {
+    return getLocalizedPath(defaultLocale, path);
+  }
+
+  return getLocalizedPath(
+    getLocaleFromPath(window.location.pathname) ?? defaultLocale,
+    path,
+  );
 };
 
 export const authProviderClient: AuthProvider = {
@@ -28,7 +40,7 @@ export const authProviderClient: AuthProvider = {
 
       return {
         success: true,
-        redirectTo: "/",
+        redirectTo: getAuthRedirectPath("/news"),
       };
     } catch (error) {
       const message =
@@ -55,7 +67,7 @@ export const authProviderClient: AuthProvider = {
 
     return {
       success: true,
-      redirectTo: "/login",
+      redirectTo: getAuthRedirectPath("/login"),
     };
   },
   check: async () => {
@@ -73,7 +85,7 @@ export const authProviderClient: AuthProvider = {
       return {
         authenticated: false,
         logout: true,
-        redirectTo: "/login",
+        redirectTo: getAuthRedirectPath("/login"),
       };
     }
   },
