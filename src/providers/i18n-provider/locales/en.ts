@@ -39,6 +39,10 @@ export const en = {
   table: {
     actions: "Actions",
   },
+  views: {
+    cards: "Cards",
+    table: "Table",
+  },
   language: {
     en: "EN",
     ru: "RU",
