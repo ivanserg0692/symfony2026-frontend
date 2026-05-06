@@ -67,7 +67,6 @@ export const authProviderClient: AuthProvider = {
 
     return {
       success: true,
-      redirectTo: getAuthRedirectPath("/login"),
     };
   },
   check: async () => {

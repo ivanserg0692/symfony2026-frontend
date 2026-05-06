@@ -40,7 +40,7 @@ export const buildApiUrl = (
   return url.toString();
 };
 
-const csrfTokenCache = new Map<CsrfTokenId, CsrfToken>();
+let csrfTokenCache: CsrfToken | null = null;
 let refreshPromise: Promise<void> | null = null;
 
 const parseResponseBody = async (response: Response) => {
@@ -111,7 +111,7 @@ const refreshAccessToken = async () => {
         throw error;
       }
 
-      csrfTokenCache.delete("api_mutation");
+      csrfTokenCache = null;
       const csrf = await getCsrfToken("api_mutation");
 
       await apiFetch("/auth/refresh", {
@@ -180,17 +180,15 @@ export const getCsrfToken = async (
   options: { forceRefresh?: boolean } = {},
 ) => {
   if (!options.forceRefresh) {
-    const cachedToken = csrfTokenCache.get(id);
-
-    if (cachedToken) {
-      return cachedToken;
+    if (csrfTokenCache) {
+      return csrfTokenCache;
     }
   }
 
   const token = await apiFetch<CsrfToken>(`/auth/csrf?id=${id}`, {
     skipAuthRefresh: true,
   });
-  csrfTokenCache.set(id, token);
+  csrfTokenCache = token;
 
   return token;
 };

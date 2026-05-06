@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useInvalidate,
   useIsAuthenticated,
   useLogout,
   useMenu,
@@ -13,6 +14,7 @@ import { usePathname } from "next/navigation";
 
 export const Menu = () => {
   const auth = useIsAuthenticated();
+  const invalidate = useInvalidate();
   const { mutate: logout } = useLogout();
   const { menuItems, selectedKey } = useMenu();
   const locale = useLocale();
@@ -53,7 +55,19 @@ export const Menu = () => {
       </div>
       {!auth.isLoading &&
         (isAuthenticated ? (
-          <button onClick={() => logout()} type="button">
+          <button
+            onClick={() => {
+              logout(undefined, {
+                onSuccess: () => {
+                  invalidate({
+                    resource: "news",
+                    invalidates: ["list", "detail"],
+                  });
+                },
+              });
+            }}
+            type="button"
+          >
             {translate("auth.actions.logout")}
           </button>
         ) : (
