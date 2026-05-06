@@ -71,7 +71,7 @@ export const NewsShow = () => {
         )}
       </Descriptions>
 
-      {record.brief && <p className="news-detail__brief">{record.brief}</p>}
+      {record.brief && (<> <br/> <br/>  <p className="news-detail__brief">{record.brief}</p></>)}
 
       {record.description && (
         <section className="news-detail__section">
