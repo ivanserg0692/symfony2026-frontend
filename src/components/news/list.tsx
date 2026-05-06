@@ -1,10 +1,13 @@
 "use client";
 
 import React from "react";
+import { EyeOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons";
+import { List, useTable } from "@refinedev/antd";
 import { useNavigation, useTranslate } from "@refinedev/core";
-import { useTable } from "@refinedev/react-table";
-import type { ColumnDef } from "@tanstack/react-table";
-import { flexRender } from "@tanstack/react-table";
+import type { HttpError } from "@refinedev/core";
+import { Button, Form, Input, Space, Table, Tag, Typography } from "antd";
+import type { ColumnsType } from "antd/es/table";
+import type { TablePaginationConfig } from "antd/es/table/interface";
 
 type NewsRecord = {
   name: string;
@@ -20,189 +23,145 @@ type NewsRecord = {
   };
 };
 
+type NewsSearch = {
+  query?: string;
+};
+
 export const NewsList = () => {
   const translate = useTranslate();
   const { show } = useNavigation();
-
-  const columns = React.useMemo<ColumnDef<NewsRecord>[]>(
-    () => [
-      {
-        id: "name",
-        accessorKey: "name",
-        header: translate("news.fields.name"),
-      },
-      {
-        id: "slug",
-        accessorKey: "slug",
-        header: translate("news.fields.slug"),
-      },
-      {
-        id: "createdAt",
-        accessorKey: "createdAt",
-        header: translate("news.fields.createdAt"),
-        cell: function render({ getValue }) {
-          return new Date(getValue<string>()).toLocaleString(undefined, {
-            timeZone: "UTC",
-          });
-        },
-      },
-      {
-        id: "createdBy",
-        accessorKey: "createdBy.firstName",
-        header: translate("news.fields.createdBy"),
-      },
-      {
-        id: "description",
-        accessorKey: "description",
-        header: translate("news.fields.description"),
-      },
-      {
-        id: "brief",
-        accessorKey: "brief",
-        header: translate("news.fields.brief"),
-      },
-      {
-        id: "status",
-        accessorKey: "status.name",
-        header: translate("news.fields.status"),
-      },
-      {
-        id: "actions",
-        accessorKey: "slug",
-        header: translate("table.actions"),
-        cell: function render({ getValue }) {
-          return (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                flexWrap: "wrap",
-                gap: "4px",
-              }}
-            >
-              <button
-                onClick={() => {
-                  show("news", getValue<string>());
-                }}
-              >
-                {translate("buttons.show")}
-              </button>
-            </div>
-          );
-        },
-      },
-    ],
-    [show, translate],
-  );
-
-  const {
-    reactTable: {
-      getHeaderGroups,
-      getRowModel,
-      getState,
-      setPageIndex,
-      getCanPreviousPage,
-      getPageCount,
-      getCanNextPage,
-      nextPage,
-      previousPage,
-      setPageSize,
+  const { tableProps, searchFormProps } = useTable<
+    NewsRecord,
+    HttpError,
+    NewsSearch
+  >({
+    pagination: {
+      pageSize: 10,
     },
-  } = useTable({
-    columns,
+    sorters: {
+      initial: [
+        {
+          field: "createdAt",
+          order: "desc",
+        },
+      ],
+    },
+    onSearch: ({ query }) => {
+      const value = query?.trim();
+
+      if (!value) {
+        return [];
+      }
+
+      return [
+        {
+          field: "query",
+          operator: "contains",
+          value,
+        },
+      ];
+    },
   });
+  const { size, ...pagination } =
+    typeof tableProps.pagination === "object"
+      ? (tableProps.pagination as TablePaginationConfig & { size?: unknown })
+      : {};
+
+  const columns: ColumnsType<NewsRecord> = [
+    {
+      dataIndex: "name",
+      title: translate("news.fields.name"),
+      sorter: true,
+      render: (value: string) => <Typography.Text strong>{value}</Typography.Text>,
+    },
+    {
+      dataIndex: "slug",
+      title: translate("news.fields.slug"),
+      sorter: true,
+      render: (value: string) => <Typography.Text code>{value}</Typography.Text>,
+    },
+    {
+      dataIndex: "createdAt",
+      title: translate("news.fields.createdAt"),
+      sorter: true,
+      render: (value: string) =>
+        value
+          ? new Date(value).toLocaleString(undefined, {
+              timeZone: "UTC",
+            })
+          : null,
+    },
+    {
+      dataIndex: ["createdBy", "firstName"],
+      title: translate("news.fields.createdBy"),
+    },
+    {
+      dataIndex: "brief",
+      title: translate("news.fields.brief"),
+      ellipsis: true,
+    },
+    {
+      dataIndex: ["status", "name"],
+      title: translate("news.fields.status"),
+      render: (value?: string) => (value ? <Tag>{value}</Tag> : null),
+    },
+    {
+      dataIndex: "slug",
+      title: translate("table.actions"),
+      fixed: "right",
+      render: (slug: string) => (
+        <Space>
+          <Button
+            icon={<EyeOutlined />}
+            onClick={() => {
+              show("news", slug);
+            }}
+          >
+            {translate("buttons.show")}
+          </Button>
+        </Space>
+      ),
+    },
+  ];
 
   return (
-    <section className="news-list">
-      <header className="news-list__header">
-        <div>
-          <h1>{translate("news.titles.list")}</h1>
-        </div>
-      </header>
-      <div className="news-list__table-wrap">
-        <table className="news-list__table">
-          <thead>
-            {getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th key={header.id}>
-                    {!header.isPlaceholder &&
-                      flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {getRowModel().rows.map((row) => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div style={{ marginTop: "12px" }}>
-        <button
-          onClick={() => setPageIndex(0)}
-          disabled={!getCanPreviousPage()}
-        >
-          {"<<"}
-        </button>
-        <button
-          onClick={() => previousPage()}
-          disabled={!getCanPreviousPage()}
-        >
-          {"<"}
-        </button>
-        <button onClick={() => nextPage()} disabled={!getCanNextPage()}>
-          {">"}
-        </button>
-        <button
-          onClick={() => setPageIndex(getPageCount() - 1)}
-          disabled={!getCanNextPage()}
-        >
-          {">>"}
-        </button>
-        <span>
-          <strong>
-            {" "}
-            {getState().pagination.pageIndex + 1} / {getPageCount()}{" "}
-          </strong>
-        </span>
-        <span>
-          | {translate("pagination.go")}:{" "}
-          <input
-            type="number"
-            defaultValue={getState().pagination.pageIndex + 1}
-            onChange={(event) => {
-              const page = event.target.value
-                ? Number(event.target.value) - 1
-                : 0;
-              setPageIndex(page);
-            }}
+    <List title={translate("news.titles.list")}>
+      <Form {...searchFormProps} layout="inline" style={{ marginBottom: 16 }}>
+        <Form.Item name="query" style={{ minWidth: 280 }}>
+          <Input
+            allowClear
+            prefix={<SearchOutlined />}
+            placeholder={translate("news.search.placeholder", "Search news")}
           />
-        </span>{" "}
-        <select
-          value={getState().pagination.pageSize}
-          onChange={(event) => {
-            setPageSize(Number(event.target.value));
-          }}
-        >
-          {[10, 20, 30, 40, 50].map((pageSize) => (
-            <option key={pageSize} value={pageSize}>
-              {translate("pagination.show")} {pageSize}
-            </option>
-          ))}
-        </select>
-      </div>
-    </section>
+        </Form.Item>
+        <Form.Item>
+          <Space>
+            <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+              {translate("buttons.search", "Search")}
+            </Button>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={() => {
+                searchFormProps.form?.setFieldsValue({ query: undefined });
+                searchFormProps.onFinish?.({ query: undefined });
+              }}
+            >
+              {translate("buttons.reset", "Reset")}
+            </Button>
+          </Space>
+        </Form.Item>
+      </Form>
+      <Table<NewsRecord>
+        {...tableProps}
+        columns={columns}
+        rowKey="slug"
+        scroll={{ x: 960 }}
+        pagination={{
+          ...pagination,
+          showSizeChanger: true,
+          pageSizeOptions: ["10", "20", "30", "40", "50"],
+        }}
+      />
+    </List>
   );
 };

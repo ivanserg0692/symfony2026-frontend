@@ -146,48 +146,37 @@
     @apply whitespace-pre-line leading-7 text-gray-900;
   }
 
-  .layout {
-    @apply flex gap-4;
+  .app-layout {
+    @apply min-h-screen;
   }
 
-  @media (max-width: 751px) {
-    .layout {
-      @apply block;
-    }
+  .app-layout__header {
+    @apply flex items-center px-6;
   }
 
-  .layout .content {
-    @apply flex flex-col flex-grow;
+  .app-layout__content {
+    @apply p-6;
   }
 
-  .breadcrumb {
-    @apply flex gap-6 p-2 px-4 border-b border-gray-300;
-    list-style-type: "/ ";
+  .app-layout__breadcrumb {
+    @apply mb-4;
   }
 
-  .breadcrumb a {
-    @apply text-blue-700 no-underline;
+  .app-menu {
+    @apply flex h-full flex-col gap-4 p-3;
   }
 
-  .menu {
-    @apply flex-shrink-0 p-2 pr-4 border-r border-gray-300;
+  .app-menu .ant-menu {
+    list-style: none;
+    margin: 0;
   }
 
-  .menu a {
-    @apply text-black;
+  .app-menu .ant-menu a,
+  .app-menu__locale a {
+    @apply no-underline;
   }
 
-  .menu .active {
-    @apply font-bold;
-  }
-
-  @media (max-width: 751px) {
-    .menu {
-      @apply border-r-0 border-b border-gray-300;
-    }
-  }
-
-  .menu ul {
-    @apply pl-4;
+  .app-menu__locale {
+    @apply px-1;
   }
 }

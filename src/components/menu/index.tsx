@@ -1,5 +1,6 @@
 "use client";
 
+import { LoginOutlined, LogoutOutlined } from "@ant-design/icons";
 import {
   useInvalidate,
   useIsAuthenticated,
@@ -9,6 +10,7 @@ import {
 } from "@refinedev/core";
 import { locales, localizeRoute } from "@/lib/i18n";
 import { useLocale } from "@/hooks/use-locale";
+import { Button, Menu as AntMenu, Space } from "antd";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -21,41 +23,40 @@ export const Menu = () => {
   const pathname = usePathname();
   const translate = useTranslate();
   const isAuthenticated = auth.data?.authenticated === true;
+  const menuItemsForAntd = menuItems.map((item) => ({
+    key: String(item.key),
+    label: (
+      <Link href={localizeRoute(locale, item.route ?? "/")}>
+        {translate(String(item.label), {}, String(item.label))}
+      </Link>
+    ),
+  }));
 
   return (
-    <nav className="menu">
-      <ul>
-        {menuItems.map((item) => (
-          <li key={item.key}>
-            <Link
-              href={localizeRoute(locale, item.route ?? "/")}
-              className={selectedKey === item.key ? "active" : ""}
-            >
-              {translate(String(item.label), {}, String(item.label))}
-            </Link>
-          </li>
-        ))}
-      </ul>
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          marginBottom: 12,
-        }}
-      >
+    <nav className="app-menu">
+      <AntMenu
+        items={menuItemsForAntd}
+        mode="inline"
+        selectedKeys={selectedKey ? [String(selectedKey)] : []}
+        theme="dark"
+      />
+      <Space className="app-menu__locale" size={8} wrap>
         {locales.map((item) => (
-          <Link
-            className={item === locale ? "active" : ""}
-            href={localizeRoute(item, pathname)}
-            key={item}
-          >
-            {translate(`language.${item}`)}
+          <Link href={localizeRoute(item, pathname)} key={item}>
+            <Button
+              size="small"
+              type={item === locale ? "primary" : "default"}
+            >
+              {translate(`language.${item}`)}
+            </Button>
           </Link>
         ))}
-      </div>
+      </Space>
       {!auth.isLoading &&
         (isAuthenticated ? (
-          <button
+          <Button
+            block
+            icon={<LogoutOutlined />}
             onClick={() => {
               logout(undefined, {
                 onSuccess: () => {
@@ -66,13 +67,14 @@ export const Menu = () => {
                 },
               });
             }}
-            type="button"
           >
             {translate("auth.actions.logout")}
-          </button>
+          </Button>
         ) : (
           <Link href={localizeRoute(locale, "/login")}>
-            {translate("auth.actions.login")}
+            <Button block icon={<LoginOutlined />}>
+              {translate("auth.actions.login")}
+            </Button>
           </Link>
         ))}
     </nav>

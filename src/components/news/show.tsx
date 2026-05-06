@@ -1,6 +1,8 @@
 "use client";
 
+import { Show } from "@refinedev/antd";
 import { useShow, useTranslate } from "@refinedev/core";
+import { Descriptions, Tag, Typography } from "antd";
 import Link from "next/link";
 import { useLocale } from "@/hooks/use-locale";
 import { localizeRoute } from "@/lib/i18n";
@@ -29,7 +31,7 @@ export const NewsShow = () => {
   const record = data?.data;
 
   if (isLoading) {
-    return <div className="news-detail">{translate("common.loading")}</div>;
+    return <Show isLoading={isLoading} />;
   }
 
   if (isError || !record) {
@@ -41,40 +43,33 @@ export const NewsShow = () => {
     .join(" ");
 
   return (
-    <article className="news-detail">
+    <Show title={record.name}>
       <Link className="news-detail__back" href={localizeRoute(locale, "/news")}>
         {translate("news.backToList")}
       </Link>
 
-      <header className="news-detail__header">
-        <div>
-          <h1>{record.name}</h1>
-          <dl className="news-detail__meta">
-            {record.createdAt && (
-              <div>
-                <dt>{translate("news.fields.createdAt")}</dt>
-                <dd>
-                  {new Date(record.createdAt).toLocaleString(undefined, {
-                    timeZone: "UTC",
-                  })}
-                </dd>
-              </div>
-            )}
-            {author && (
-              <div>
-                <dt>{translate("news.fields.createdBy")}</dt>
-                <dd>{author}</dd>
-              </div>
-            )}
-            {record.status?.name && (
-              <div>
-                <dt>{translate("news.fields.status")}</dt>
-                <dd>{record.status.name}</dd>
-              </div>
-            )}
-          </dl>
-        </div>
-      </header>
+      <Descriptions bordered column={1} style={{ marginTop: 16 }}>
+        <Descriptions.Item label={translate("news.fields.slug")}>
+          <Typography.Text code>{record.slug}</Typography.Text>
+        </Descriptions.Item>
+        {record.createdAt && (
+          <Descriptions.Item label={translate("news.fields.createdAt")}>
+            {new Date(record.createdAt).toLocaleString(undefined, {
+              timeZone: "UTC",
+            })}
+          </Descriptions.Item>
+        )}
+        {author && (
+          <Descriptions.Item label={translate("news.fields.createdBy")}>
+            {author}
+          </Descriptions.Item>
+        )}
+        {record.status?.name && (
+          <Descriptions.Item label={translate("news.fields.status")}>
+            <Tag>{record.status.name}</Tag>
+          </Descriptions.Item>
+        )}
+      </Descriptions>
 
       {record.brief && <p className="news-detail__brief">{record.brief}</p>}
 
@@ -84,6 +79,6 @@ export const NewsShow = () => {
           <p>{record.description}</p>
         </section>
       )}
-    </article>
+    </Show>
   );
 };

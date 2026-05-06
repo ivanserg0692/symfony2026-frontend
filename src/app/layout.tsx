@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import React, { Suspense } from "react";
 
 import { Providers } from "./providers";
+import "@ant-design/v5-patch-for-react-19";
+import "antd/dist/reset.css";
 import "@styles/global.css";
 
 export const metadata: Metadata = {

@@ -20,6 +20,8 @@ export const en = {
     loading: "Loading...",
   },
   buttons: {
+    reset: "Reset",
+    search: "Search",
     show: "View",
   },
   pagination: {
@@ -54,6 +56,9 @@ export const en = {
       label: "News pagination",
       next: "Next",
       previous: "Previous",
+    },
+    search: {
+      placeholder: "Search news",
     },
     backToList: "Back to news",
     loadError: "Failed to load news.",

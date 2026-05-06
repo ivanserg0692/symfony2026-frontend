@@ -3,6 +3,7 @@
 import type {
   BaseRecord,
   CreateParams,
+  CrudFilters,
   DataProvider,
   DeleteOneParams,
   GetListParams,
@@ -40,6 +41,18 @@ const sortToQuery = (
   };
 };
 
+const filtersToQuery = (filters?: CrudFilters) => {
+  const query: Record<string, string> = {};
+
+  filters?.forEach((filter) => {
+    if ("field" in filter && filter.value !== undefined && filter.value !== "") {
+      query[String(filter.field)] = String(filter.value);
+    }
+  });
+
+  return query;
+};
+
 const mutationHeaders = async () => {
   const csrf = await getCsrfToken("api_mutation");
 
@@ -53,6 +66,7 @@ export const dataProvider: DataProvider = {
     resource,
     pagination,
     sorters,
+    filters,
   }: GetListParams) => {
     const current = pagination?.currentPage ?? 1;
     const pageSize = pagination?.pageSize ?? 10;
@@ -60,6 +74,7 @@ export const dataProvider: DataProvider = {
       page: current,
       limit: pageSize,
       ...sortToQuery(sorters),
+      ...filtersToQuery(filters),
     });
 
     const response = await apiFetch<ListResponse<TData>>(url);

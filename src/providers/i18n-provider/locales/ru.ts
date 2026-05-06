@@ -20,6 +20,8 @@ export const ru = {
     loading: "Загрузка...",
   },
   buttons: {
+    reset: "Сбросить",
+    search: "Искать",
     show: "Просмотр",
   },
   pagination: {
@@ -54,6 +56,9 @@ export const ru = {
       label: "Пагинация новостей",
       next: "Вперед",
       previous: "Назад",
+    },
+    search: {
+      placeholder: "Поиск по новостям",
     },
     backToList: "Назад к новостям",
     loadError: "Не удалось загрузить новости.",
