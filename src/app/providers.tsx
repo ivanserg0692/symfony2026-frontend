@@ -27,6 +27,13 @@ export const Providers = ({ children }: PropsWithChildren) => {
                 list: "/:locale/news",
                 show: "/:locale/news/show/:id",
               },
+              {
+                name: "notification",
+                list: "/:locale/notifications",
+                meta: {
+                  label: "resources.notification",
+                },
+              },
             ]}
             options={{
               syncWithLocation: true,

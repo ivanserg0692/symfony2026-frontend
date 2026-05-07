@@ -29,11 +29,24 @@ export const en = {
   },
   notifications: {
     title: "Notifications",
+    titles: {
+      list: "Notifications",
+    },
     empty: "No notifications",
     fallbackMessage: "Notification",
     loadError: "Failed to load notifications.",
     mutationError: "Failed to update notifications.",
     clearAllConfirm: "Delete all notifications?",
+    fields: {
+      createdAt: "Created",
+      message: "Message",
+      readAt: "Read",
+      status: "Status",
+    },
+    status: {
+      read: "Read",
+      unread: "Unread",
+    },
     actions: {
       cancel: "Cancel",
       clearAll: "Clear",
@@ -94,5 +107,6 @@ export const en = {
   },
   resources: {
     news: "News",
+    notification: "Notifications",
   },
 };

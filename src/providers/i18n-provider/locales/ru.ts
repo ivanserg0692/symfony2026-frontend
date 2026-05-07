@@ -29,11 +29,24 @@ export const ru = {
   },
   notifications: {
     title: "Уведомления",
+    titles: {
+      list: "Уведомления",
+    },
     empty: "Уведомлений нет",
     fallbackMessage: "Уведомление",
     loadError: "Не удалось загрузить уведомления.",
     mutationError: "Не удалось обновить уведомления.",
     clearAllConfirm: "Удалить все уведомления?",
+    fields: {
+      createdAt: "Создано",
+      message: "Сообщение",
+      readAt: "Прочитано",
+      status: "Статус",
+    },
+    status: {
+      read: "Прочитано",
+      unread: "Новое",
+    },
     actions: {
       cancel: "Отмена",
       clearAll: "Очистить",
@@ -94,5 +107,6 @@ export const ru = {
   },
   resources: {
     news: "Новости",
+    notification: "Уведомления",
   },
 };

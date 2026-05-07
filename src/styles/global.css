@@ -173,6 +173,10 @@
   .notifications-popover__item .ant-list-item-meta-description {
     @apply text-xs;
   }
+
+  .notifications-list__row--unread > td {
+    background: color-mix(in srgb, var(--app-unread-bg) 70%, transparent);
+  }
 }
 
 :root {
