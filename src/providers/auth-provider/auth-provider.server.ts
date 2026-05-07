@@ -1,12 +1,18 @@
 import type { AuthProvider } from "@refinedev/core";
+import { API_URL } from "@/lib/api-client";
 import { cookies } from "next/headers";
 
 export const authProviderServer: Pick<AuthProvider, "check"> = {
   check: async () => {
     const cookieStore = await cookies();
-    const auth = cookieStore.get("auth");
+    const cookieHeader = cookieStore.toString();
 
-    if (auth) {
+    const response = await fetch(`${API_URL}/auth/me`, {
+      cache: "no-store",
+      headers: cookieHeader ? { Cookie: cookieHeader } : {},
+    });
+
+    if (response.ok) {
       return {
         authenticated: true,
       };

@@ -1,0 +1,47 @@
+@startuml
+title Frontend API client lifecycle
+
+start
+:Caller invokes apiFetch(path, options);
+:Create ApiClient instance;
+
+if (options.csrf?) then (yes)
+  :Resolve CSRF token id;
+  if (last cached token matches id?) then (yes)
+    :Reuse cached token;
+  else (no)
+    :GET /auth/csrf?id=<id>;
+    :Cache returned token as the last token;
+  endif
+  :Attach CSRF header;
+endif
+
+if (request has body and no Content-Type?) then (yes)
+  :Set Content-Type: application/json;
+endif
+
+:Send fetch with credentials: include;
+:Parse JSON, text, or empty 204 response;
+
+if (response ok?) then (yes)
+  :Return parsed body;
+  stop
+else (no)
+  :Create ApiError;
+endif
+
+if (CSRF mutation and CSRF error and not retried?) then (yes)
+  :Clear CSRF token cache;
+  :Retry request once with same public options;
+  stop
+endif
+
+if (401 and auth refresh is allowed?) then (yes)
+  :POST /auth/refresh with csrf: true;
+  :Retry original request once with auth refresh disabled;
+  stop
+endif
+
+:Throw ApiError;
+stop
+@enduml

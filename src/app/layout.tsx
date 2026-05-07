@@ -1,12 +1,9 @@
-import { DevtoolsProvider } from "@providers/devtools";
-import { GitHubBanner, Refine } from "@refinedev/core";
-import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
-import routerProvider from "@refinedev/nextjs-router";
 import { Metadata } from "next";
 import React, { Suspense } from "react";
 
-import { authProviderClient } from "@providers/auth-provider/auth-provider.client";
-import { dataProvider } from "@providers/data-provider";
+import { Providers } from "./providers";
+import "@ant-design/v5-patch-for-react-19";
+import "antd/dist/reset.css";
 import "@styles/global.css";
 
 export const metadata: Metadata = {
@@ -26,24 +23,7 @@ export default async function RootLayout({
     <html lang="en">
       <body>
         <Suspense>
-          <GitHubBanner />
-          <RefineKbarProvider>
-            <DevtoolsProvider>
-              <Refine
-                routerProvider={routerProvider}
-                dataProvider={dataProvider}
-                authProvider={authProviderClient}
-                options={{
-                  syncWithLocation: true,
-                  warnWhenUnsavedChanges: true,
-                  projectId: "lTmBHr-9dDGf0-4VaWng",
-                }}
-              >
-                {children}
-                <RefineKbar />
-              </Refine>
-            </DevtoolsProvider>
-          </RefineKbarProvider>
+          <Providers>{children}</Providers>
         </Suspense>
       </body>
     </html>

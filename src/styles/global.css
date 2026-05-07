@@ -2,103 +2,197 @@
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
-/* 
-* These styles were added to improve the appearance of the example pages.
-* It is safe to delete them, and they are not intended to be used by Refine components.
-*/
 @layer base {
-  input {
-    @apply border border-gray-300 rounded-sm;
-  }
-
-  input[type="submit"] {
-    @apply bg-[#EFEFEF];
-  }
-
-  button {
-    @apply border border-gray-300 px-2 rounded-sm bg-[#EFEFEF];
-  }
-
-  h1 {
-    @apply text-2xl font-bold my-6;
-  }
-
-  ul {
-    @apply list-disc my-4;
-  }
-
-  a {
-    @apply text-blue-700 underline;
-  }
-
-  label {
-    @apply text-sm font-medium;
-  }
-
   body {
-    @apply m-0 bg-white;
+    @apply m-0;
+    background: var(--app-bg);
+    color: var(--app-text);
   }
 
-  table {
-    @apply border border-black border-collapse;
+  .news-list {
+    @apply p-4;
   }
 
-  table th,
-  table td {
-    @apply m-0 p-2 border-b border-r border-black;
+  .news-list__header {
+    @apply flex items-start justify-between gap-4;
   }
 
-  table tr:last-child td {
+  .news-list__header h1 {
+    @apply my-0 mb-4;
+  }
+
+  .news-list__table-wrap {
+    @apply w-full overflow-x-auto rounded-md border border-gray-200 bg-white;
+  }
+
+  .news-list__table {
+    @apply w-full min-w-[960px] border-0 text-left text-sm;
+  }
+
+  .news-list__table th {
+    @apply border-0 border-b border-gray-200 bg-gray-50 px-3 py-2 font-semibold text-gray-700;
+  }
+
+  .news-list__table td {
+    @apply border-0 border-b border-gray-100 px-3 py-3 align-top text-gray-900;
+  }
+
+  .news-list__table tbody tr:last-child td {
     @apply border-b-0;
   }
 
-  table th:last-child,
-  table td:last-child {
-    @apply border-r-0;
+  .news-list__table tbody tr:hover {
+    @apply bg-gray-50;
   }
 
-  .layout {
-    @apply flex gap-4;
+  .news-list__table td:last-child {
+    @apply whitespace-nowrap;
   }
 
-  @media (max-width: 751px) {
-    .layout {
-      @apply block;
-    }
+  .news-detail {
+    @apply max-w-4xl p-4;
+    color: var(--app-text);
   }
 
-  .layout .content {
-    @apply flex flex-col flex-grow;
+  .news-detail__back {
+    @apply inline-flex text-sm no-underline;
   }
 
-  .breadcrumb {
-    @apply flex gap-6 p-2 px-4 border-b border-gray-300;
-    list-style-type: "/ ";
+  .news-detail__header {
+    @apply mt-4 border-b pb-4;
+    border-color: var(--app-border);
   }
 
-  .breadcrumb a {
-    @apply text-blue-700 no-underline;
+  .news-detail__header h1 {
+    @apply my-0 text-3xl;
   }
 
-  .menu {
-    @apply flex-shrink-0 p-2 pr-4 border-r border-gray-300;
+  .news-detail__meta {
+    @apply mt-4 grid gap-3 text-sm;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   }
 
-  .menu a {
-    @apply text-black;
+  .news-detail__meta div {
+    @apply rounded-md border px-3 py-2;
+    background: var(--app-container-bg);
+    border-color: var(--app-border);
   }
 
-  .menu .active {
-    @apply font-bold;
+  .news-detail__meta dt {
+    @apply text-xs font-semibold uppercase;
+    color: var(--app-muted-text);
   }
 
-  @media (max-width: 751px) {
-    .menu {
-      @apply border-r-0 border-b border-gray-300;
-    }
+  .news-detail__meta dd {
+    @apply m-0 mt-1;
+    color: var(--app-text);
   }
 
-  .menu ul {
-    @apply pl-4;
+  .news-detail__brief {
+    @apply mt-6 text-lg leading-7;
+    color: var(--app-text);
   }
+
+  .news-detail__section {
+    @apply mt-6;
+  }
+
+  .news-detail__section h2 {
+    @apply mb-3 text-xl font-semibold;
+  }
+
+  .news-detail__section p {
+    @apply whitespace-pre-line leading-7;
+    color: var(--app-text);
+  }
+
+  .app-layout {
+    @apply min-h-screen;
+    background: var(--app-bg);
+  }
+
+  .app-layout__header {
+    @apply flex items-center justify-end px-6;
+  }
+
+  .app-layout__content {
+    @apply p-6;
+    background: var(--app-bg);
+  }
+
+  .app-layout__breadcrumb {
+    @apply mb-4;
+  }
+
+  .app-menu {
+    @apply flex h-full flex-col gap-4 p-3;
+  }
+
+  .app-menu .ant-menu {
+    list-style: none;
+    margin: 0;
+  }
+
+  .app-menu .ant-menu a,
+  .app-menu__locale a {
+    @apply no-underline;
+  }
+
+  .app-menu__locale {
+    @apply px-1;
+  }
+
+  .notifications-popover {
+    @apply w-[min(360px,calc(100vw-32px))];
+  }
+
+  .notifications-popover__header {
+    @apply mb-2 flex items-center justify-between gap-3;
+  }
+
+  .notifications-popover__error {
+    @apply mb-2 block text-sm;
+  }
+
+  .notifications-popover__list {
+    @apply max-h-[420px] overflow-y-auto;
+  }
+
+  .notifications-popover__item {
+    @apply rounded-md px-2;
+  }
+
+  .notifications-popover__item--unread {
+    background: color-mix(in srgb, var(--app-unread-bg) 82%, transparent);
+  }
+
+  .notifications-popover__item .ant-list-item-meta-title {
+    @apply mb-1 whitespace-pre-line text-sm leading-5;
+  }
+
+  .notifications-popover__item .ant-list-item-meta-description {
+    @apply text-xs;
+  }
+
+  .notifications-list__row--unread > td {
+    background: color-mix(in srgb, var(--app-unread-bg) 70%, transparent);
+  }
+}
+
+:root {
+  --app-bg: #eef1f5;
+  --app-border: #d8dde5;
+  --app-container-bg: #fbfbfc;
+  --app-muted-text: rgba(24, 31, 42, 0.58);
+  --app-text: rgba(24, 31, 42, 0.88);
+  --app-unread-bg: #e6f4ff;
+}
+
+:root[data-theme="dark"] {
+  --app-bg: #1f1f1f;
+  --app-border: #424242;
+  --app-container-bg: #262626;
+  --app-muted-text: rgba(255, 255, 255, 0.45);
+  --app-text: rgba(255, 255, 255, 0.85);
+  --app-unread-bg: #112a45;
 }

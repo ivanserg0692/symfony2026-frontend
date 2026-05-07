@@ -1,24 +1,28 @@
 "use client";
 
-import { useBreadcrumb } from "@refinedev/core";
+import { useLocale } from "@/hooks/use-locale";
+import { localizeRoute } from "@/lib/i18n";
+import { useBreadcrumb, useTranslate } from "@refinedev/core";
+import { Breadcrumb as AntBreadcrumb } from "antd";
 import Link from "next/link";
 
 export const Breadcrumb = () => {
   const { breadcrumbs } = useBreadcrumb();
+  const locale = useLocale();
+  const translate = useTranslate();
 
   return (
-    <ul className="breadcrumb">
-      {breadcrumbs.map((breadcrumb) => {
-        return (
-          <li key={`breadcrumb-${breadcrumb.label}`}>
-            {breadcrumb.href ? (
-              <Link href={breadcrumb.href}>{breadcrumb.label}</Link>
-            ) : (
-              <span>{breadcrumb.label}</span>
-            )}
-          </li>
-        );
-      })}
-    </ul>
+    <AntBreadcrumb
+      items={breadcrumbs.map((breadcrumb) => ({
+        key: String(breadcrumb.label),
+        title: breadcrumb.href ? (
+          <Link href={localizeRoute(locale, breadcrumb.href)}>
+            {translate(String(breadcrumb.label), {}, breadcrumb.label)}
+          </Link>
+        ) : (
+          <span>{translate(String(breadcrumb.label), {}, breadcrumb.label)}</span>
+        ),
+      }))}
+    />
   );
 };
