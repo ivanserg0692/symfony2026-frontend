@@ -20,7 +20,7 @@ import {
   Typography,
 } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { apiFetch, buildApiUrl, getCsrfToken } from "@/lib/api-client";
+import { apiFetch, buildApiUrl } from "@/lib/api-client";
 
 type NotificationItem = {
   id: number;
@@ -38,14 +38,6 @@ type ListResponse<TData> = {
 
 const notificationLimit = 10;
 const notificationPollIntervalMs = 30_000;
-
-const mutationHeaders = async () => {
-  const csrf = await getCsrfToken("api_mutation");
-
-  return {
-    [csrf.header_name]: csrf.token,
-  };
-};
 
 const formatDate = (value?: string | null) => {
   if (!value) {
@@ -140,7 +132,7 @@ export const Notifications = () => {
         `/notification/${item.id}/read`,
         {
           method: "PATCH",
-          headers: await mutationHeaders(),
+          csrf: true,
         },
       );
 
@@ -163,7 +155,7 @@ export const Notifications = () => {
     try {
       await apiFetch<void>(`/notification/${item.id}`, {
         method: "DELETE",
-        headers: await mutationHeaders(),
+        csrf: true,
       });
 
       setItems((currentItems) =>
@@ -183,7 +175,7 @@ export const Notifications = () => {
     try {
       await apiFetch<void>("/notification", {
         method: "DELETE",
-        headers: await mutationHeaders(),
+        csrf: true,
       });
 
       setItems([]);

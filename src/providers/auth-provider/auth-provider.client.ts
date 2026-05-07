@@ -1,7 +1,7 @@
 "use client";
 
 import type { AuthProvider } from "@refinedev/core";
-import { ApiError, apiFetch, getCsrfToken } from "@/lib/api-client";
+import { ApiError, apiFetch } from "@/lib/api-client";
 import { defaultLocale, getLocalizedPath, getLocaleFromPath } from "@/lib/i18n";
 
 type UserIdentity = {
@@ -25,12 +25,9 @@ const getAuthRedirectPath = (path: string) => {
 export const authProviderClient: AuthProvider = {
   login: async ({ email, username, password, turnstileToken }) => {
     try {
-      const csrf = await getCsrfToken("authenticate");
       await apiFetch("/auth/login", {
         method: "POST",
-        headers: {
-          [csrf.header_name]: csrf.token,
-        },
+        csrf: "authenticate",
         body: JSON.stringify({
           email: email ?? username,
           password,
@@ -56,13 +53,9 @@ export const authProviderClient: AuthProvider = {
     }
   },
   logout: async () => {
-    const csrf = await getCsrfToken("api_mutation");
-
     await apiFetch("/auth/logout", {
       method: "POST",
-      headers: {
-        [csrf.header_name]: csrf.token,
-      },
+      csrf: true,
     });
 
     return {

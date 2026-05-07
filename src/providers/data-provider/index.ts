@@ -10,11 +10,7 @@ import type {
   GetOneParams,
   UpdateParams,
 } from "@refinedev/core";
-import {
-  apiFetch,
-  buildApiUrl,
-  getCsrfToken,
-} from "@/lib/api-client";
+import { apiFetch, buildApiUrl } from "@/lib/api-client";
 
 type ListResponse<TData> = {
   items: TData[];
@@ -51,14 +47,6 @@ const filtersToQuery = (filters?: CrudFilters) => {
   });
 
   return query;
-};
-
-const mutationHeaders = async () => {
-  const csrf = await getCsrfToken("api_mutation");
-
-  return {
-    [csrf.header_name]: csrf.token,
-  };
 };
 
 export const dataProvider: DataProvider = {
@@ -101,7 +89,7 @@ export const dataProvider: DataProvider = {
   }: CreateParams<TVariables>) => {
     const data = await apiFetch<TData>(`/${resource}`, {
       method: "POST",
-      headers: await mutationHeaders(),
+      csrf: true,
       body: JSON.stringify(variables),
     });
 
@@ -117,7 +105,7 @@ export const dataProvider: DataProvider = {
   }: UpdateParams<TVariables>) => {
     const data = await apiFetch<TData>(`/${resource}/${id}`, {
       method: "PATCH",
-      headers: await mutationHeaders(),
+      csrf: true,
       body: JSON.stringify(variables),
     });
 
@@ -132,7 +120,7 @@ export const dataProvider: DataProvider = {
   }: DeleteOneParams<TVariables>) => {
     const data = await apiFetch<TData>(`/${resource}/${id}`, {
       method: "DELETE",
-      headers: await mutationHeaders(),
+      csrf: true,
     });
 
     return { data };

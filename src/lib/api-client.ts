@@ -11,7 +11,12 @@ type CsrfToken = {
 type CsrfTokenId = "authenticate" | "api_mutation";
 
 type ApiFetchOptions = RequestInit & {
+  csrf?: boolean | CsrfTokenId;
   skipAuthRefresh?: boolean;
+};
+
+type ApiFetchState = {
+  csrfRetried?: boolean;
 };
 
 export class ApiError extends Error {
@@ -25,170 +30,207 @@ export class ApiError extends Error {
   }
 }
 
+export class ApiClient {
+  private csrfTokenCache: CsrfToken | null = null;
+  private refreshPromise: Promise<void> | null = null;
+
+  constructor(private readonly apiUrl: string) {}
+
+  buildApiUrl(
+    path: string,
+    query?: Record<string, string | number | boolean | undefined>,
+  ) {
+    const url = new URL(
+      `${this.apiUrl}${path.startsWith("/") ? path : `/${path}`}`,
+    );
+
+    Object.entries(query ?? {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== "") {
+        url.searchParams.set(key, String(value));
+      }
+    });
+
+    return url.toString();
+  }
+
+  fetch<T>(path: string, init: ApiFetchOptions = {}): Promise<T> {
+    return this.fetchInternal<T>(path, init);
+  }
+
+  async getCsrfToken(
+    id: CsrfTokenId,
+    options: { forceRefresh?: boolean } = {},
+  ) {
+    if (!options.forceRefresh) {
+      const cachedToken = this.csrfTokenCache;
+
+      if (cachedToken?.token_id === id) {
+        return cachedToken;
+      }
+    }
+
+    const token = await this.fetch<CsrfToken>(`/auth/csrf?id=${id}`, {
+      skipAuthRefresh: true,
+    });
+    this.csrfTokenCache = token;
+
+    return token;
+  }
+
+  private async fetchInternal<T>(
+    path: string,
+    init: ApiFetchOptions = {},
+    state: ApiFetchState = {},
+  ): Promise<T> {
+    const { csrf, skipAuthRefresh, ...requestInit } = init;
+    const headers = new Headers(requestInit.headers);
+    const csrfTokenId = csrf === true ? "api_mutation" : csrf || null;
+
+    if (csrfTokenId) {
+      const csrfToken = await this.getCsrfToken(csrfTokenId);
+
+      headers.set(csrfToken.header_name, csrfToken.token);
+    }
+
+    if (!headers.has("Content-Type") && requestInit.body) {
+      headers.set("Content-Type", "application/json");
+    }
+
+    const url = path.startsWith("http://") || path.startsWith("https://")
+      ? path
+      : this.buildApiUrl(path);
+
+    const response = await fetch(url, {
+      ...requestInit,
+      headers,
+      credentials: "include",
+    });
+
+    const body = await this.parseResponseBody(response);
+
+    if (!response.ok) {
+      const error = this.createApiError(response, body);
+
+      if (csrfTokenId && !state.csrfRetried && this.isCsrfError(error)) {
+        this.csrfTokenCache = null;
+
+        return this.fetchInternal<T>(
+          path,
+          {
+            ...requestInit,
+            csrf,
+            headers: requestInit.headers,
+            skipAuthRefresh,
+          },
+          {
+            ...state,
+            csrfRetried: true,
+          },
+        );
+      }
+
+      if (
+        response.status === 401 &&
+        !skipAuthRefresh &&
+        this.shouldTryAuthRefresh(url)
+      ) {
+        await this.refreshAccessToken();
+
+        return this.fetchInternal<T>(
+          path,
+          {
+            ...requestInit,
+            csrf,
+            headers,
+            skipAuthRefresh: true,
+          },
+          state,
+        );
+      }
+
+      throw error;
+    }
+
+    return body as T;
+  }
+
+  private async refreshAccessToken() {
+    this.refreshPromise ??= (async () => {
+      await this.fetch("/auth/refresh", {
+        method: "POST",
+        csrf: true,
+        skipAuthRefresh: true,
+      });
+    })();
+
+    try {
+      await this.refreshPromise;
+    } finally {
+      this.refreshPromise = null;
+    }
+  }
+
+  private async parseResponseBody(response: Response) {
+    if (response.status === 204) {
+      return undefined;
+    }
+
+    const contentType = response.headers.get("Content-Type") ?? "";
+
+    return contentType.includes("application/json")
+      ? await response.json()
+      : await response.text();
+  }
+
+  private createApiError(response: Response, body: unknown) {
+    const message =
+      typeof body === "object" &&
+      body !== null &&
+      "message" in body &&
+      typeof body.message === "string"
+        ? body.message
+        : response.statusText;
+
+    return new ApiError(message, response.status, body);
+  }
+
+  private shouldTryAuthRefresh(url: string) {
+    const pathname = new URL(url).pathname;
+
+    return ![
+      "/api/v1/auth/csrf",
+      "/api/v1/auth/login",
+      "/api/v1/auth/logout",
+      "/api/v1/auth/refresh",
+    ].includes(pathname);
+  }
+
+  private isCsrfError(error: unknown) {
+    if (!(error instanceof ApiError)) {
+      return false;
+    }
+
+    if (error.status !== 400 && error.status !== 403) {
+      return false;
+    }
+
+    return error.message.toLowerCase().includes("csrf");
+  }
+}
+
+export const createApiClient = () => new ApiClient(API_URL);
+
 export const buildApiUrl = (
   path: string,
   query?: Record<string, string | number | boolean | undefined>,
-) => {
-  const url = new URL(`${API_URL}${path.startsWith("/") ? path : `/${path}`}`);
-
-  Object.entries(query ?? {}).forEach(([key, value]) => {
-    if (value !== undefined && value !== "") {
-      url.searchParams.set(key, String(value));
-    }
-  });
-
-  return url.toString();
-};
-
-let csrfTokenCache: CsrfToken | null = null;
-let refreshPromise: Promise<void> | null = null;
-
-const parseResponseBody = async (response: Response) => {
-  if (response.status === 204) {
-    return undefined;
-  }
-
-  const contentType = response.headers.get("Content-Type") ?? "";
-
-  return contentType.includes("application/json")
-    ? await response.json()
-    : await response.text();
-};
-
-const createApiError = (response: Response, body: unknown) => {
-  const message =
-    typeof body === "object" &&
-    body !== null &&
-    "message" in body &&
-    typeof body.message === "string"
-      ? body.message
-      : response.statusText;
-
-  return new ApiError(message, response.status, body);
-};
-
-const getPathname = (url: string) => {
-  return new URL(url).pathname;
-};
-
-const shouldTryAuthRefresh = (url: string) => {
-  const pathname = getPathname(url);
-
-  return ![
-    "/api/v1/auth/csrf",
-    "/api/v1/auth/login",
-    "/api/v1/auth/logout",
-    "/api/v1/auth/refresh",
-  ].includes(pathname);
-};
-
-const isCsrfError = (error: unknown) => {
-  if (!(error instanceof ApiError)) {
-    return false;
-  }
-
-  if (error.status !== 400 && error.status !== 403) {
-    return false;
-  }
-
-  return error.message.toLowerCase().includes("csrf");
-};
-
-const refreshAccessToken = async () => {
-  refreshPromise ??= (async () => {
-    try {
-      const csrf = await getCsrfToken("api_mutation");
-
-      await apiFetch("/auth/refresh", {
-        method: "POST",
-        headers: {
-          [csrf.header_name]: csrf.token,
-        },
-        skipAuthRefresh: true,
-      });
-    } catch (error) {
-      if (!isCsrfError(error)) {
-        throw error;
-      }
-
-      csrfTokenCache = null;
-      const csrf = await getCsrfToken("api_mutation");
-
-      await apiFetch("/auth/refresh", {
-        method: "POST",
-        headers: {
-          [csrf.header_name]: csrf.token,
-        },
-        skipAuthRefresh: true,
-      });
-    }
-  })();
-
-  try {
-    await refreshPromise;
-  } finally {
-    refreshPromise = null;
-  }
-};
+) => createApiClient().buildApiUrl(path, query);
 
 export const apiFetch = async <T>(
   path: string,
   init: ApiFetchOptions = {},
-): Promise<T> => {
-  const { skipAuthRefresh, ...requestInit } = init;
-  const headers = new Headers(requestInit.headers);
+): Promise<T> => createApiClient().fetch<T>(path, init);
 
-  if (!headers.has("Content-Type") && requestInit.body) {
-    headers.set("Content-Type", "application/json");
-  }
-
-  const url = path.startsWith("http://") || path.startsWith("https://")
-    ? path
-    : buildApiUrl(path);
-
-  const response = await fetch(url, {
-    ...requestInit,
-    headers,
-    credentials: "include",
-  });
-
-  const body = await parseResponseBody(response);
-
-  if (!response.ok) {
-    if (
-      response.status === 401 &&
-      !skipAuthRefresh &&
-      shouldTryAuthRefresh(url)
-    ) {
-      await refreshAccessToken();
-
-      return apiFetch<T>(path, {
-        ...requestInit,
-        headers,
-        skipAuthRefresh: true,
-      });
-    }
-
-    throw createApiError(response, body);
-  }
-
-  return body as T;
-};
-
-export const getCsrfToken = async (
+export const getCsrfToken = (
   id: CsrfTokenId,
   options: { forceRefresh?: boolean } = {},
-) => {
-  if (!options.forceRefresh) {
-    if (csrfTokenCache) {
-      return csrfTokenCache;
-    }
-  }
-
-  const token = await apiFetch<CsrfToken>(`/auth/csrf?id=${id}`, {
-    skipAuthRefresh: true,
-  });
-  csrfTokenCache = token;
-
-  return token;
-};
+) => createApiClient().getCsrfToken(id, options);
