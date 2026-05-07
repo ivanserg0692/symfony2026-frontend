@@ -1,0 +1,47 @@
+@startuml
+title Жизненный цикл frontend API client
+
+start
+:Вызывающий код запускает apiFetch(path, options);
+:Создается экземпляр ApiClient;
+
+if (options.csrf?) then (да)
+  :Определить id CSRF-токена;
+  if (последний кешированный токен подходит по id?) then (да)
+    :Использовать кешированный токен;
+  else (нет)
+    :GET /auth/csrf?id=<id>;
+    :Сохранить полученный токен как последний;
+  endif
+  :Добавить CSRF-заголовок;
+endif
+
+if (у запроса есть body и нет Content-Type?) then (да)
+  :Установить Content-Type: application/json;
+endif
+
+:Отправить fetch с credentials: include;
+:Разобрать JSON, text или пустой 204-ответ;
+
+if (response ok?) then (да)
+  :Вернуть разобранное тело ответа;
+  stop
+else (нет)
+  :Создать ApiError;
+endif
+
+if (CSRF mutation, CSRF-ошибка и retry еще не было?) then (да)
+  :Очистить кеш CSRF-токена;
+  :Повторить запрос один раз с теми же публичными options;
+  stop
+endif
+
+if (401 и auth refresh разрешен?) then (да)
+  :POST /auth/refresh с csrf: true;
+  :Повторить исходный запрос один раз с отключенным auth refresh;
+  stop
+endif
+
+:Выбросить ApiError;
+stop
+@enduml

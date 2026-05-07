@@ -144,8 +144,8 @@ npm run start
 
 #### Жизненный цикл API client
 
-<!-- plantuml src="docs/plantuml/api-client-lifecycle.puml" alt="Frontend API client lifecycle" out="docs/images/plantuml/api-client-lifecycle.png" -->
-![Frontend API client lifecycle](docs/images/plantuml/api-client-lifecycle.png)
+<!-- plantuml src="docs/plantuml/api-client-lifecycle-ru.puml" alt="Жизненный цикл frontend API client" out="docs/images/plantuml/api-client-lifecycle-ru.png" -->
+![Жизненный цикл frontend API client](docs/images/plantuml/api-client-lifecycle-ru.png)
 <!-- /plantuml -->
 
 ### Функции
