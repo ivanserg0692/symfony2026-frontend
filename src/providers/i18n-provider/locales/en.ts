@@ -48,6 +48,7 @@ export const en = {
     ru: "RU",
   },
   news: {
+    news: "News",
     title: "News",
     titles: {
       list: "News",

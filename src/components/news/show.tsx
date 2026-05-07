@@ -43,11 +43,7 @@ export const NewsShow = () => {
     .join(" ");
 
   return (
-    <Show title={record.name}>
-      <Link className="news-detail__back" href={localizeRoute(locale, "/news")}>
-        {translate("news.backToList")}
-      </Link>
-
+    <Show title={record.name} breadcrumb={false}>
       <Descriptions bordered column={1} style={{ marginTop: 16 }}>
         <Descriptions.Item label={translate("news.fields.slug")}>
           <Typography.Text code>{record.slug}</Typography.Text>

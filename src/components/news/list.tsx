@@ -9,7 +9,7 @@ import {
   TableOutlined,
 } from "@ant-design/icons";
 import { List as RefineList, useTable } from "@refinedev/antd";
-import { useNavigation, useTranslate } from "@refinedev/core";
+import { useTranslate } from "@refinedev/core";
 import type { HttpError } from "@refinedev/core";
 import {
   Button,
@@ -26,6 +26,9 @@ import {
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import type { TablePaginationConfig } from "antd/es/table/interface";
+import Link from "next/link";
+import { useLocale } from "@/hooks/use-locale";
+import { localizeRoute } from "@/lib/i18n";
 
 type NewsRecord = {
   name: string;
@@ -49,9 +52,9 @@ type ViewMode = "table" | "card";
 
 export const NewsList = () => {
   const translate = useTranslate();
-  const { show } = useNavigation();
+  const locale = useLocale();
   const [viewMode, setViewMode] = React.useState<ViewMode>("table");
-  const { tableProps, searchFormProps } = useTable<
+  const { tableProps, searchFormProps, setFilters } = useTable<
     NewsRecord,
     HttpError,
     NewsSearch
@@ -103,6 +106,7 @@ export const NewsList = () => {
           pageSizeOptions: ["10", "20", "30", "40", "50"],
         }
       : false;
+  const getShowHref = (slug: string) => localizeRoute(locale, `/news/show/${slug}`);
 
   const columns: ColumnsType<NewsRecord> = [
     {
@@ -148,21 +152,16 @@ export const NewsList = () => {
       fixed: "right",
       render: (slug: string) => (
         <Space>
-          <Button
-            icon={<EyeOutlined />}
-            onClick={() => {
-              show("news", slug);
-            }}
-          >
-            {translate("buttons.show")}
-          </Button>
+          <Link href={getShowHref(slug)}>
+            <Button icon={<EyeOutlined />}>{translate("buttons.show")}</Button>
+          </Link>
         </Space>
       ),
     },
   ];
 
   return (
-    <RefineList title={translate("news.titles.list")}>
+    <RefineList title={translate("news.titles.list")} breadcrumb={false}>
       <Space direction="vertical" size={16} style={{ width: "100%" }}>
         <Space
           align="start"
@@ -185,8 +184,8 @@ export const NewsList = () => {
                 <Button
                   icon={<ReloadOutlined />}
                   onClick={() => {
-                    searchFormProps.form?.setFieldsValue({ query: undefined });
-                    searchFormProps.onFinish?.({ query: undefined });
+                    searchFormProps.form?.resetFields();
+                    setFilters([], "replace");
                   }}
                 >
                   {translate("buttons.reset", "Reset")}
@@ -243,16 +242,11 @@ export const NewsList = () => {
                   title={record.name}
                   extra={record.status?.name ? <Tag>{record.status.name}</Tag> : null}
                   actions={[
-                    <Button
-                      key="show"
-                      type="link"
-                      icon={<EyeOutlined />}
-                      onClick={() => {
-                        show("news", record.slug);
-                      }}
-                    >
-                      {translate("buttons.show")}
-                    </Button>,
+                    <Link key="show" href={getShowHref(record.slug)}>
+                      <Button type="link" icon={<EyeOutlined />}>
+                        {translate("buttons.show")}
+                      </Button>
+                    </Link>,
                   ]}
                 >
                   <Space direction="vertical" size={8} style={{ width: "100%" }}>

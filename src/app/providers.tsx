@@ -26,9 +26,6 @@ export const Providers = ({ children }: PropsWithChildren) => {
                 name: "news",
                 list: "/:locale/news",
                 show: "/:locale/news/show/:id",
-                meta: {
-                  label: "resources.news",
-                },
               },
             ]}
             options={{
