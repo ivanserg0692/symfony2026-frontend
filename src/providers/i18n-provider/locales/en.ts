@@ -27,6 +27,21 @@ export const en = {
   common: {
     loading: "Loading...",
   },
+  notifications: {
+    title: "Notifications",
+    empty: "No notifications",
+    fallbackMessage: "Notification",
+    loadError: "Failed to load notifications.",
+    mutationError: "Failed to update notifications.",
+    clearAllConfirm: "Delete all notifications?",
+    actions: {
+      cancel: "Cancel",
+      clearAll: "Clear",
+      delete: "Delete",
+      markAsRead: "Mark as read",
+      refresh: "Refresh",
+    },
+  },
   buttons: {
     reset: "Reset",
     search: "Search",

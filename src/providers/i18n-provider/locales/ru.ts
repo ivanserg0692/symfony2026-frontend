@@ -27,6 +27,21 @@ export const ru = {
   common: {
     loading: "Загрузка...",
   },
+  notifications: {
+    title: "Уведомления",
+    empty: "Уведомлений нет",
+    fallbackMessage: "Уведомление",
+    loadError: "Не удалось загрузить уведомления.",
+    mutationError: "Не удалось обновить уведомления.",
+    clearAllConfirm: "Удалить все уведомления?",
+    actions: {
+      cancel: "Отмена",
+      clearAll: "Очистить",
+      delete: "Удалить",
+      markAsRead: "Отметить прочитанным",
+      refresh: "Обновить",
+    },
+  },
   buttons: {
     reset: "Сбросить",
     search: "Искать",

@@ -112,7 +112,7 @@
   }
 
   .app-layout__header {
-    @apply flex items-center px-6;
+    @apply flex items-center justify-end px-6;
   }
 
   .app-layout__content {
@@ -141,6 +141,38 @@
   .app-menu__locale {
     @apply px-1;
   }
+
+  .notifications-popover {
+    @apply w-[min(360px,calc(100vw-32px))];
+  }
+
+  .notifications-popover__header {
+    @apply mb-2 flex items-center justify-between gap-3;
+  }
+
+  .notifications-popover__error {
+    @apply mb-2 block text-sm;
+  }
+
+  .notifications-popover__list {
+    @apply max-h-[420px] overflow-y-auto;
+  }
+
+  .notifications-popover__item {
+    @apply rounded-md px-2;
+  }
+
+  .notifications-popover__item--unread {
+    background: color-mix(in srgb, var(--app-unread-bg) 82%, transparent);
+  }
+
+  .notifications-popover__item .ant-list-item-meta-title {
+    @apply mb-1 whitespace-pre-line text-sm leading-5;
+  }
+
+  .notifications-popover__item .ant-list-item-meta-description {
+    @apply text-xs;
+  }
 }
 
 :root {
@@ -149,6 +181,7 @@
   --app-container-bg: #fbfbfc;
   --app-muted-text: rgba(24, 31, 42, 0.58);
   --app-text: rgba(24, 31, 42, 0.88);
+  --app-unread-bg: #e6f4ff;
 }
 
 :root[data-theme="dark"] {
@@ -157,4 +190,5 @@
   --app-container-bg: #262626;
   --app-muted-text: rgba(255, 255, 255, 0.45);
   --app-text: rgba(255, 255, 255, 0.85);
+  --app-unread-bg: #112a45;
 }
