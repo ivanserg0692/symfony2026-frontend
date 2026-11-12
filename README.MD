@@ -32,6 +32,8 @@
 
 Admin frontend for the Symfony API. The application is built with Next.js, Refine, Ant Design, and a custom API client for authenticated requests.
 
+Storefront planning: [API analysis, page map, visual references and light/dark design prototypes](docs/design/README.md). These documents describe the proposed storefront; implementation has not started.
+
 ### Backend Repository
 
 Backend API repository: [ivanserg0692/symfony2026](https://github.com/ivanserg0692/symfony2026).
@@ -124,6 +126,8 @@ npm run start
 ## Русский
 
 Административный фронт для Symfony API. Приложение собрано на Next.js, Refine, Ant Design и собственном API-клиенте для авторизованных запросов.
+
+Планирование витрины: [анализ API, карта страниц, визуальные референсы и прототипы Light/Dark](docs/design/README.md). Документы описывают будущую витрину; реализация не начата.
 
 ### Репозиторий backend
 
