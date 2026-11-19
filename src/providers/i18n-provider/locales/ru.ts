@@ -1,4 +1,30 @@
 export const ru = {
+  storefront: {
+    brand: "Магазин",
+    home: "На главную магазина",
+    skip: "Перейти к содержимому",
+    catalog: "Каталог",
+    search: "Найти в каталоге",
+    navigation: "Навигация магазина",
+    account: "Аккаунт",
+    cart: "Корзина",
+    language: "Выбрать язык",
+    heroTitle: "Всё нужное. В одном месте.",
+    heroText: "Познакомьтесь с товарами нашего каталога.",
+    toCatalog: "К товарам",
+    sections: "Разделы каталога",
+    products: "Товары каталога",
+    allNews: "Все новости",
+    retry: "Повторить",
+    sectionsError: "Не удалось загрузить разделы каталога.",
+    productsError: "Не удалось загрузить товары.",
+    sectionsEmpty: "Разделов пока нет",
+    productsEmpty: "Товаров пока нет",
+    newsEmpty: "Новостей пока нет",
+    unnamedSection: "Раздел без названия",
+    unnamedProduct: "Товар без названия",
+    noImage: "Нет изображения",
+  },
   auth: {
     login: {
       title: "Войти",
@@ -16,9 +42,11 @@ export const ru = {
     },
   },
   theme: {
+    select: "Выбрать тему",
     actions: {
       dark: "Темная тема",
       light: "Светлая тема",
+      system: "Как в системе",
     },
   },
   actions: {

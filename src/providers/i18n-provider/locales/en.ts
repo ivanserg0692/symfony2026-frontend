@@ -1,4 +1,30 @@
 export const en = {
+  storefront: {
+    brand: "Store",
+    home: "Store home",
+    skip: "Skip to content",
+    catalog: "Catalog",
+    search: "Search the catalog",
+    navigation: "Store navigation",
+    account: "Account",
+    cart: "Cart",
+    language: "Choose language",
+    heroTitle: "Everything you need. In one place.",
+    heroText: "Explore products from our catalog.",
+    toCatalog: "Browse products",
+    sections: "Catalog sections",
+    products: "Catalog products",
+    allNews: "All news",
+    retry: "Retry",
+    sectionsError: "Failed to load catalog sections.",
+    productsError: "Failed to load products.",
+    sectionsEmpty: "No sections yet",
+    productsEmpty: "No products yet",
+    newsEmpty: "No news yet",
+    unnamedSection: "Unnamed section",
+    unnamedProduct: "Unnamed product",
+    noImage: "No image",
+  },
   auth: {
     login: {
       title: "Sign in",
@@ -16,9 +42,11 @@ export const en = {
     },
   },
   theme: {
+    select: "Choose theme",
     actions: {
       dark: "Dark theme",
       light: "Light theme",
+      system: "System theme",
     },
   },
   actions: {

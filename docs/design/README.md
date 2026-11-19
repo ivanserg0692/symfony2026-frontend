@@ -24,6 +24,8 @@ Recorded on 2026-11-13 from the repository inspection and safe local API checks 
 
 The selected visual direction is a minimal marketplace with violet accents, Inter typography, and light/dark themes. **LUMA is a working name**, not an approved production brand. Saving these materials approves documentation of the direction; it does not authorize implementation or backend changes. Exact layouts, mobile screens, and interaction details still need implementation-task acceptance criteria.
 
+Implementation update, 2026-11-20: stage 1 adds localized home pages at `/ru` and `/en`; `/` redirects to `/ru`. The Ant Design storefront has independent section/product/news previews, responsive navigation and Light/Dark/System using the existing theme provider. The neutral Store/Магазин label does not establish a brand. Inter is the preferred CSS font with a system fallback; no font files or external font service were added. Search and cart are disabled until their stages; Catalog scrolls to the home product preview. Sections and products are previews without detail links, prices or purchase actions. News retains `/news/show/{slug}` and notifications retain `/notifications`, both under the locale prefix. Backend, infrastructure and authentication behavior remain unchanged.
+
 ### Documents
 
 | Document | Contents |
@@ -54,6 +56,8 @@ Markdown uses one document title, English/Russian language sections and nested s
 Зафиксировано 2026-11-13 по результатам исследования репозитория и безопасных запросов к локальному API. Это снимок состояния на момент исследования, а не гарантия поведения последующих развёртываний.
 
 Выбрано направление минималистичного маркетплейса с фиолетовым акцентом, Inter и светлой/тёмной темами. **LUMA — рабочее название**, не утверждённый бренд. Сохранение материалов согласует документирование направления, но не разрешает реализацию и изменения бэкенда. Точные макеты, мобильные экраны и взаимодействия требуют критериев приёмки отдельной задачи.
+
+Обновление реализации, 2026-11-20: этап 1 добавляет главную по `/ru` и `/en`; `/` перенаправляет на `/ru`. Витрина на Ant Design содержит независимые превью разделов, товаров и новостей, адаптивную навигацию и Light/Dark/System через существующий theme provider. Нейтральная подпись Магазин/Store не задаёт бренд. Inter указан предпочтительным CSS-шрифтом с системным fallback; файлы шрифта и внешний сервис шрифтов не добавлены. Поиск и корзина отключены до следующих этапов; «Каталог» прокручивает к товарам главной. Разделы и товары — превью без ссылок на детали, цен и действий покупки. Новости сохраняют `/news/show/{slug}`, уведомления — `/notifications`, внутри префикса локали. Backend, инфраструктура и поведение авторизации не менялись.
 
 ### Документы
 

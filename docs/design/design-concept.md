@@ -96,16 +96,18 @@ Use practical touch targets around 44 px, labels for icon actions, visible focus
 ### Corrections to the raster board
 
 - All pictured products, prices, category examples, photos and news copy are demonstration data, not API exports.
-- Product/category `pictureId` does not yet yield a documented URL. Use a clear fallback until the media contract/files exist; do not ship the illustration's sample photos as actual catalog images.
+- Updated 2026-11-20: product/category `picture` now provides thumbnail/card/full URLs and attribution/license fields. Home previews use API card URLs with attribution and a missing/broken-image fallback; prototype photos are not catalog assets.
 - Illustrated news thumbnails have no backing API field: first-version news cards are text-based.
 - Numbered pagination in the illustration applies only to total-based responses; `hasNextPage` requires previous/next.
-- The visible Light/Dark button represents a future three-choice Light/Dark/System menu; the current provider only has two modes.
+- Implemented in stage 1: the Light/Dark/System menu extends the existing provider, with one resolved theme driving CSS and Ant Design. Stored Light/Dark preferences remain supported.
 - Product detail stays intentionally reduced: gallery/specifications/variants remain backend work.
 - The board is not an exact asset, spacing or typography specification; tokens and verified contracts in these documents take precedence.
 
 ### Libraries, reuse and ownership
 
 Retain Next.js, React, Tailwind, Refine and existing API/auth/i18n logic. Add shadcn/ui primitives and Lucide only in a separately approved implementation task. Ant Design can remain on current administrative/resource screens. next-themes is a candidate for System support; [official shadcn guidance](https://ui.shadcn.com/docs/dark-mode/next) demonstrates the integration. Reconcile the current `data-theme` CSS variant rather than assuming the new provider's default attribute matches it.
+
+Approved implementation decision, 2026-11-20: use existing Ant Design components and icons for the storefront too. No shadcn/ui, Lucide or next-themes dependency is needed. Stage 1 uses the current Next.js 15 / React 19 installation and client Refine queries; it does not add server prefetching or shared caches for API responses.
 
 Candidate primitives: Button, Input, Card, Breadcrumb, Checkbox, Accordion, Sheet, Dropdown Menu, Dialog/Alert Dialog, Skeleton, Alert, Pagination and status feedback. Do not install a full commerce template with unrelated backend/payment assumptions.
 
@@ -196,16 +198,18 @@ Desktop: слева одно крупное изображение/fallback, с�
 ### Поправки к растровому листу
 
 - Товары, цены, категории, фотографии и новости демонстрационные, не выгружены из API.
-- `pictureId` не даёт документированного URL. До media-контракта использовать fallback; фото иллюстрации не выдавать за реальные товары.
+- Обновлено 2026-11-20: `picture` товара/раздела содержит thumbnail/card/full URL, атрибуцию и лицензию. Превью главной используют card URL из API с атрибуцией и fallback для отсутствующего/сломавшегося изображения; фото прототипа не используются как товары.
 - У новостей нет поля обложки: в первой версии текстовые карточки.
 - Нумерация страниц подходит только total-ответам; при `hasNextPage` — «Назад/Далее».
-- Кнопка Light/Dark обозначает будущее меню Light/Dark/System; сейчас provider двухрежимный.
+- Реализовано на этапе 1: меню Light/Dark/System расширяет существующий provider; одна разрешённая тема управляет CSS и Ant Design. Сохранённые настройки Light/Dark поддерживаются.
 - Сокращённый товар намеренный: галерея/характеристики/варианты требуют backend.
 - Изображение не задаёт точные assets/отступы/метрики; текстовые токены и проверенные контракты приоритетнее.
 
 ### Библиотеки, повторное использование и состояние
 
 Сохранить Next.js, React, Tailwind, Refine и API/auth/i18n. shadcn/ui и Lucide добавить только отдельной задачей. Ant Design оставить на существующих admin/resource-экранах. Для System рассмотреть next-themes; [официальный shadcn](https://ui.shadcn.com/docs/dark-mode/next) описывает интеграцию. Согласовать атрибут темы с существующим `data-theme`, не предполагать совпадение defaults.
+
+Согласованное решение реализации, 2026-11-20: использовать существующие компоненты и иконки Ant Design также для витрины. shadcn/ui, Lucide и next-themes не нужны. Этап 1 работает на текущих Next.js 15 / React 19 и клиентских запросах Refine, без server prefetch и общих серверных кэшей API-ответов.
 
 Примитивы: Button, Input, Card, Breadcrumb, Checkbox, Accordion, Sheet, Dropdown Menu, Dialog/Alert Dialog, Skeleton, Alert, Pagination и feedback статусов. Не устанавливать полный commerce template с чужой оплатой/бэкендом.
 

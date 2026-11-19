@@ -12,10 +12,12 @@ import {
 } from "react";
 
 type AppTheme = "light" | "dark";
+type ThemePreference = AppTheme | "system";
 
 type AppThemeContextValue = {
   theme: AppTheme;
-  setTheme: (theme: AppTheme) => void;
+  preference: ThemePreference;
+  setTheme: (theme: ThemePreference) => void;
   toggleTheme: () => void;
 };
 
@@ -25,12 +27,13 @@ const AppThemeContext = createContext<AppThemeContextValue | undefined>(
   undefined,
 );
 
-const getStoredTheme = (): AppTheme => {
-  if (typeof window === "undefined") {
-    return "light";
+const getStoredTheme = (): ThemePreference => {
+  try {
+    const value = window.localStorage.getItem(storageKey);
+    return value === "light" || value === "dark" ? value : "system";
+  } catch {
+    return "system";
   }
-
-  return window.localStorage.getItem(storageKey) === "dark" ? "dark" : "light";
 };
 
 const getAntdTheme = (appTheme: AppTheme): ThemeConfig => {
@@ -38,15 +41,21 @@ const getAntdTheme = (appTheme: AppTheme): ThemeConfig => {
     return {
       algorithm: theme.darkAlgorithm,
       token: {
-        colorBgBase: "#1f1f1f",
-        colorBgContainer: "#262626",
-        colorBgLayout: "#1f1f1f",
+        colorPrimary: "#7C3AED",
+        borderRadius: 12,
+        fontFamily: "Inter, system-ui, sans-serif",
+        colorBgBase: "#101116",
+        colorBgContainer: "#191B23",
+        colorBgLayout: "#101116",
+        colorText: "#F4F4F5",
+        colorTextSecondary: "#A1A1AA",
+        colorBorder: "#30323D",
       },
       components: {
         Layout: {
-          bodyBg: "#1f1f1f",
-          headerBg: "#141414",
-          siderBg: "#141414",
+          bodyBg: "#101116",
+          headerBg: "#191B23",
+          siderBg: "#191B23",
         },
       },
     };
@@ -55,27 +64,29 @@ const getAntdTheme = (appTheme: AppTheme): ThemeConfig => {
   return {
     algorithm: theme.defaultAlgorithm,
     token: {
-      borderRadius: 6,
-      colorBgBase: "#f3f4f6",
-      colorBgContainer: "#fbfbfc",
+      borderRadius: 12,
+      fontFamily: "Inter, system-ui, sans-serif",
+      colorBgBase: "#F7F7FA",
+      colorBgContainer: "#FFFFFF",
       colorBgElevated: "#ffffff",
-      colorBgLayout: "#eef1f5",
-      colorBorder: "#d8dde5",
-      colorPrimary: "#2f6fcb",
-      colorText: "rgba(24, 31, 42, 0.88)",
+      colorBgLayout: "#F7F7FA",
+      colorBorder: "#E4E4E7",
+      colorPrimary: "#7C3AED",
+      colorText: "#18181B",
+      colorTextSecondary: "#52525B",
     },
     components: {
       Layout: {
-        bodyBg: "#eef1f5",
-        headerBg: "#fbfbfc",
-        siderBg: "#fbfbfc",
-        triggerBg: "#fbfbfc",
-        triggerColor: "rgba(24, 31, 42, 0.88)",
+        bodyBg: "#F7F7FA",
+        headerBg: "#FFFFFF",
+        siderBg: "#FFFFFF",
+        triggerBg: "#FFFFFF",
+        triggerColor: "#18181B",
       },
       Menu: {
-        itemBg: "#fbfbfc",
-        itemSelectedBg: "#e3ecfa",
-        itemSelectedColor: "#1f5fbf",
+        itemBg: "#FFFFFF",
+        itemSelectedBg: "#F3EDFF",
+        itemSelectedColor: "#7C3AED",
       },
       Table: {
         headerBg: "#f5f7fa",
@@ -86,12 +97,19 @@ const getAntdTheme = (appTheme: AppTheme): ThemeConfig => {
 };
 
 export const AppThemeProvider = ({ children }: PropsWithChildren) => {
-  const [appTheme, setAppTheme] = useState<AppTheme>("light");
+  const [preference, setPreference] = useState<ThemePreference>("system");
+  const [systemTheme, setSystemTheme] = useState<AppTheme>("light");
   const [isHydrated, setIsHydrated] = useState(false);
+  const appTheme = preference === "system" ? systemTheme : preference;
 
   useEffect(() => {
-    setAppTheme(getStoredTheme());
+    setPreference(getStoredTheme());
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const update = () => setSystemTheme(media.matches ? "dark" : "light");
+    update();
+    media.addEventListener("change", update);
     setIsHydrated(true);
+    return () => media.removeEventListener("change", update);
   }, []);
 
   useEffect(() => {
@@ -101,20 +119,23 @@ export const AppThemeProvider = ({ children }: PropsWithChildren) => {
 
     document.documentElement.dataset.theme = appTheme;
     document.documentElement.style.colorScheme = appTheme;
-    window.localStorage.setItem(storageKey, appTheme);
-  }, [appTheme, isHydrated]);
+    try {
+      window.localStorage.setItem(storageKey, preference);
+    } catch {
+      // Theme selection still works when browser storage is unavailable.
+    }
+  }, [appTheme, preference, isHydrated]);
 
   const value = useMemo<AppThemeContextValue>(
     () => ({
       theme: appTheme,
-      setTheme: setAppTheme,
+      preference,
+      setTheme: setPreference,
       toggleTheme: () => {
-        setAppTheme((currentTheme) =>
-          currentTheme === "dark" ? "light" : "dark",
-        );
+        setPreference(appTheme === "dark" ? "light" : "dark");
       },
     }),
-    [appTheme],
+    [appTheme, preference],
   );
 
   return (

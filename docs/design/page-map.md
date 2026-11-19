@@ -22,6 +22,8 @@
 
 ### Routing and support levels
 
+Stage 1 update (2026-11-20): only the localized home and storefront shell are implemented. Catalog navigation is an anchor to home product previews; search/cart are disabled. Category/product previews are read-only. Other storefront routes below remain planned. Existing news and notification routes are preserved, including `/news/show/{slug}` and `/notifications` under each locale. No account, catalog, product, cart or checkout pages were added in stage 1.
+
 Proposed paths below are relative to the existing `/{locale}` prefix (`ru`/`en`). These are planning routes, not implemented pages. Preserve existing news/auth entry points with an explicit migration/redirect plan when the implementation task is approved; current localized news detail uses `/news/show/{slug}`.
 
 **Supported** means the essential data/operation exists in source; it does not mean an authenticated browser acceptance test passed. **Partial** means a useful reduced page is possible with documented omissions or integration work. **Backend required** means the core scenario has no API. The shared cross-origin authentication blocker applies to protected pages.
@@ -70,6 +72,8 @@ Candidate first scope: public discovery, reduced product detail, existing login,
 ## Русский
 
 ### Маршруты и уровни поддержки
+
+Обновление этапа 1 (2026-11-20): реализованы только локализованная главная и оболочка витрины. «Каталог» ведёт к превью товаров главной, поиск/корзина отключены. Разделы и товары доступны только для просмотра превью. Остальные маршруты витрины ниже остаются планом. Существующие маршруты новостей и уведомлений сохранены, включая `/news/show/{slug}` и `/notifications` внутри локали. Страницы аккаунта, каталога, товара, корзины и checkout на этапе 1 не добавлялись.
 
 Пути ниже предлагаются внутри существующего `/{locale}` (`ru`/`en`). Это план, страницы не реализованы. При реализации нужен явный план перехода/редиректов существующих news/auth-маршрутов; сейчас локализованные детали новости используют `/news/show/{slug}`.
 
