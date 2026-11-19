@@ -1,0 +1,31 @@
+"use client";
+
+import { useTranslate } from "@refinedev/core";
+import { Card } from "antd";
+import Link from "next/link";
+import { useLocale } from "@/hooks/use-locale";
+import { getLocalizedPath } from "@/lib/i18n";
+import type { CatalogElement } from "@/types/catalog";
+import { CatalogPicture } from "../catalog-picture";
+import { effectiveCatalogPrice } from "./price";
+
+export const ProductPrice = ({ product }: { product: CatalogElement }) => {
+  const translate = useTranslate();
+  const locale = useLocale();
+  const price = effectiveCatalogPrice(product.productPrices);
+  return <p className="storefront-product__price">{price
+    ? `${new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(price.amount / 100)} ${price.currency}`
+    : translate("shop.priceUnavailable")}</p>;
+};
+
+export const ProductCard = ({ product }: { product: CatalogElement }) => {
+  const translate = useTranslate();
+  const locale = useLocale();
+  return (
+    <Card className="storefront-product" cover={<CatalogPicture picture={product.picture} name={product.name || ""} />}>
+      <h3><Link href={getLocalizedPath(locale, `/product/${product.id}`)}>{product.name || translate("storefront.unnamedProduct")}</Link></h3>
+      <ProductPrice product={product} />
+      <p>{translate(product.totalStock > 0 ? "shop.inStock" : "shop.outOfStock")}</p>
+    </Card>
+  );
+};

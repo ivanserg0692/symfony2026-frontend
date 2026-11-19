@@ -4,8 +4,8 @@ import { AppstoreOutlined, ShoppingCartOutlined, UserOutlined } from "@ant-desig
 import { useIsAuthenticated, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Input } from "antd";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, type PropsWithChildren } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, type PropsWithChildren } from "react";
 import { Notifications } from "@/components/notifications";
 import { useLocale } from "@/hooks/use-locale";
 import { getLocalizedPath, locales, localizeRoute } from "@/lib/i18n";
@@ -15,6 +15,11 @@ export const StorefrontLayout = ({ children }: PropsWithChildren) => {
   const translate = useTranslate();
   const locale = useLocale();
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("query") ?? "";
+  const [search, setSearch] = useState(searchQuery);
+  useEffect(() => setSearch(searchQuery), [searchQuery, pathname]);
   const auth = useIsAuthenticated();
   const home = getLocalizedPath(locale);
 
@@ -30,11 +35,18 @@ export const StorefrontLayout = ({ children }: PropsWithChildren) => {
           <Link className="storefront__brand" href={home} aria-label={translate("storefront.home")}>
             {translate("storefront.brand")}
           </Link>
-          <Button type="primary" href={`${home}#catalog`} icon={<AppstoreOutlined />}>
+          <Button type="primary" href={getLocalizedPath(locale, "/catalog")} icon={<AppstoreOutlined />}>
             {translate("storefront.catalog")}
           </Button>
           <div className="storefront__search">
-            <Input.Search disabled aria-label={translate("storefront.search")} placeholder={translate("storefront.search")} />
+            <Input.Search value={search} onChange={(event) => setSearch(event.target.value)} onSearch={(query) => {
+              const browsing = pathname === getLocalizedPath(locale, "/catalog") || pathname.startsWith(getLocalizedPath(locale, "/category/"));
+              const params = new URLSearchParams(browsing ? searchParams.toString() : "");
+              params.delete("page");
+              params.delete("query");
+              if (query.trim()) params.set("query", query.trim());
+              router.push((browsing ? pathname : getLocalizedPath(locale, "/catalog")) + (params.size ? `?${params}` : ""));
+            }} aria-label={translate("storefront.search")} placeholder={translate("storefront.search")} />
           </div>
           <nav className="storefront__actions" aria-label={translate("storefront.navigation")}>
             {!auth.isLoading && (auth.data?.authenticated ? (
@@ -59,7 +71,7 @@ export const StorefrontLayout = ({ children }: PropsWithChildren) => {
               trigger={["click"]}
               menu={{
                 selectedKeys: [locale],
-                items: locales.map((item) => ({ key: item, label: <Link href={localizeRoute(item, pathname)} lang={item}>{translate(`language.${item}`)}</Link> })),
+                items: locales.map((item) => ({ key: item, label: <Link href={localizeRoute(item, pathname) + (searchParams.size ? `?${searchParams}` : "")} lang={item}>{translate(`language.${item}`)}</Link> })),
               }}
             >
               <Button aria-label={translate("storefront.language")}>{translate(`language.${locale}`)}</Button>

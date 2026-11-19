@@ -7,10 +7,11 @@ import Link from "next/link";
 import { useLocale } from "@/hooks/use-locale";
 import { getLocalizedPath } from "@/lib/i18n";
 import type { CatalogElement, CatalogSection } from "@/types/catalog";
-import { CatalogPicture } from "./catalog-picture";
+import { ProductCard } from "./catalog/product-card";
 
 const SectionsPreview = () => {
   const translate = useTranslate();
+  const locale = useLocale();
   const { result, query } = useList<CatalogSection>({
     resource: "catalog/sections",
     dataProviderName: "catalog",
@@ -27,7 +28,7 @@ const SectionsPreview = () => {
       ) : (
         <ul className="storefront-sections">
           {result.data.slice(0, 8).map((item) => (
-            <li key={item.id}><Card size="small">{item.name || translate("storefront.unnamedSection")}</Card></li>
+            <li key={item.id}><Card size="small"><Link href={getLocalizedPath(locale, `/category/${item.id}`)}>{item.name || translate("storefront.unnamedSection")}</Link></Card></li>
           ))}
         </ul>
       )}
@@ -55,10 +56,7 @@ const ProductsPreview = () => {
         <ul className="storefront-products">
           {result.data.map((item) => (
             <li key={item.id}>
-              <Card className="storefront-product" cover={<CatalogPicture picture={item.picture} name={item.name || ""} />}>
-                <h3>{item.name || translate("storefront.unnamedProduct")}</h3>
-                {item.description && <p className="storefront-product__description">{item.description}</p>}
-              </Card>
+              <ProductCard product={item} />
             </li>
           ))}
         </ul>
@@ -107,13 +105,14 @@ const NewsPreview = () => {
 
 export const StorefrontHome = () => {
   const translate = useTranslate();
+  const locale = useLocale();
   return (
     <>
       <section className="storefront-hero" aria-labelledby="hero-title">
         <div>
           <h1 id="hero-title">{translate("storefront.heroTitle")}</h1>
           <p>{translate("storefront.heroText")}</p>
-          <Button type="primary" size="large" href="#catalog" icon={<ArrowRightOutlined />}>{translate("storefront.toCatalog")}</Button>
+          <Button type="primary" size="large" href={getLocalizedPath(locale, "/catalog")} icon={<ArrowRightOutlined />}>{translate("storefront.toCatalog")}</Button>
         </div>
       </section>
       <SectionsPreview />

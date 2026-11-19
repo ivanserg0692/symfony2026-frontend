@@ -1,4 +1,28 @@
 export const en = {
+  shop: {
+    "priceUnavailable": "Price unavailable",
+    "inStock": "In stock",
+    "outOfStock": "Out of stock",
+    "allSections": "All sections",
+    "priceFrom": "Price from",
+    "priceTo": "Price to",
+    "invalidPrice": "Enter a non-negative price with up to two decimal places.",
+    "invalidRange": "Maximum price must be at least the minimum price.",
+    "priceFilterNote": "The range checks all product prices. The price shown on a card may differ.",
+    "onlyInStock": "In stock only",
+    "apply": "Apply",
+    "reset": "Reset",
+    "filters": "Filters",
+    "invalidFilters": "The link contains invalid filters. Correct them or reset the filters.",
+    "sectionNotFound": "Section not found",
+    "productNotFound": "Product not found or unavailable",
+    "productError": "Could not load the product.",
+    "catalogOrder": "Catalog order",
+    "total": "Found: {{count}}",
+    "noResults": "No products match your search",
+    "description": "Description",
+    "noDescription": "No description available"
+},
   storefront: {
     brand: "Store",
     home: "Store home",

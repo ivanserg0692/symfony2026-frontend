@@ -5,10 +5,10 @@ import { useTranslate } from "@refinedev/core";
 import { useState } from "react";
 import type { CatalogPicture as Picture } from "@/types/catalog";
 
-export const CatalogPicture = ({ picture, name }: { picture: Picture | null; name: string }) => {
+export const CatalogPicture = ({ picture, name, full = false }: { picture: Picture | null; name: string; full?: boolean }) => {
   const translate = useTranslate();
   const [failedUrl, setFailedUrl] = useState<string>();
-  const source = picture?.cardUrl;
+  const source = full ? picture?.fullUrl : picture?.cardUrl;
 
   return (
     <figure className="storefront-picture">
@@ -16,7 +16,7 @@ export const CatalogPicture = ({ picture, name }: { picture: Picture | null; nam
         {source && source !== failedUrl ? (
           // API-provided URLs do not require a new Next.js image-host configuration.
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={source} alt={picture.alt || name} loading="lazy" onError={() => setFailedUrl(source)} />
+          <img src={source} alt={picture?.alt || name} loading="lazy" onError={() => setFailedUrl(source)} />
         ) : (
           <span role="img" aria-label={translate("storefront.noImage")}><PictureOutlined /></span>
         )}
