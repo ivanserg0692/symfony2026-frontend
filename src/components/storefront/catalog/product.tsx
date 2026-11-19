@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useLocale } from "@/hooks/use-locale";
 import { getLocalizedPath } from "@/lib/i18n";
 import type { CatalogElementDetail } from "@/types/catalog";
+import { AddToCart } from "../cart/add-to-cart";
 import { CatalogPicture } from "../catalog-picture";
 import { ProductPrice } from "./product-card";
 
@@ -30,6 +31,7 @@ export const StorefrontProduct = ({ id }: { id: number }) => {
         <h1>{name}</h1>
         <ProductPrice product={product} />
         <p>{translate(product.totalStock > 0 ? "shop.inStock" : "shop.outOfStock")}</p>
+        <AddToCart id={product.id} available={product.totalStock > 0} />
       </header>
       <CatalogPicture picture={product.picture} name={name} full />
       <div className="storefront-detail__content">

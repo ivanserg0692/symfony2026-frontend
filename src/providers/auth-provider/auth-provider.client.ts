@@ -106,7 +106,7 @@ export const authProviderClient: AuthProvider = {
     }
   },
   onError: async (error) => {
-    if (error.response?.status === 401) {
+    if (error.statusCode === 401 || error.response?.status === 401) {
       return {
         logout: true,
       };

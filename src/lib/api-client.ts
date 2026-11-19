@@ -115,8 +115,16 @@ export class ApiClient {
       ? path
       : this.buildApiUrl(path);
 
-    const response = await fetch(url, {
+    const gateway = this.apiUrl.replace(/\/$/, "");
+    const cartRequest = url.startsWith(`${gateway}/`) &&
+      /^\/cart(?:\/items(?:\/\d+)?)?$/.test(new URL(url).pathname.slice(new URL(gateway).pathname.length));
+    const destination = cartRequest && process.env.NODE_ENV === "development" && typeof window !== "undefined"
+      ? new URL(`/api/v1${url.slice(gateway.length)}`, window.location.origin).toString()
+      : url;
+
+    const response = await fetch(destination, {
       ...requestInit,
+      ...(cartRequest ? { cache: "no-store" } : {}),
       headers,
       credentials: "include",
     });

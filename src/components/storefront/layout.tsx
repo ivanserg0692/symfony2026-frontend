@@ -69,7 +69,7 @@ export const StorefrontLayout = ({ children }: PropsWithChildren) => {
                 <span className="storefront__action-label">{translate("auth.actions.login")}</span>
               </Button>
             ))}
-            <Button className="storefront__compact-action" disabled icon={<ShoppingCartOutlined />} aria-label={translate("storefront.cart")}>
+            <Button className="storefront__compact-action" href={getLocalizedPath(locale, "/cart")} icon={<ShoppingCartOutlined />} aria-label={translate("storefront.cart")}>
               <span className="storefront__action-label">{translate("storefront.cart")}</span>
             </Button>
             <ThemeSelector />

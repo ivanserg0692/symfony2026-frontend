@@ -17,3 +17,11 @@ export const effectiveCatalogPrice = (prices: CatalogPrice[], now = Date.now()):
   if (sale && sale.price! < base.price! && sale.currency !== base.currency) return null;
   return { amount: Math.min(base.price!, sale?.price ?? base.price!), currency: base.currency };
 };
+
+export function formatCatalogAmount(locale: string, amount: number, currency: string) {
+  const value = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount / 100);
+  return `${value} ${currency}`;
+}

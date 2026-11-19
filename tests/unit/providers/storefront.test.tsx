@@ -63,7 +63,7 @@ describe("storefront home", () => {
     });
   };
 
-  it("loads real previews through named providers and enables catalog navigation while keeping the cart disabled", async () => {
+  it("loads real previews through named providers and links to the catalog and cart without querying guest cart data", async () => {
     await mount();
     expect(container.textContent).toContain("Клавиатура");
     expect(container.textContent).toContain("Техника");
@@ -74,7 +74,7 @@ describe("storefront home", () => {
     expect(container.querySelector('input[aria-label="Найти в каталоге"]')).not.toBeDisabled();
     expect(container.querySelector('a[href="/ru/product/2"]')).not.toBeNull();
     expect(container.querySelector('a[href="/ru/category/1"]')).not.toBeNull();
-    expect(Array.from(container.querySelectorAll("button")).find((button) => button.textContent?.includes("Корзина"))).toBeDisabled();
+    expect(container.querySelector('a[aria-label="Корзина"][href="/ru/cart"]')).not.toBeNull();
     const productUrl = new URL(fetchMock.mock.calls.find(([url]) => String(url).includes("/catalog/elements"))![0]);
     expect(productUrl.searchParams.get("limit")).toBe("5");
     expect(productUrl.searchParams.get("active")).toBe("true");

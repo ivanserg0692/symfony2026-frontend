@@ -345,3 +345,52 @@
     scroll-behavior: auto !important;
   }
 }
+
+.storefront-add { display: grid; gap: 12px; justify-items: start; margin-top: 16px; }
+.storefront-add .ant-alert { max-width: 100%; }
+.storefront__main .ant-btn-primary[href]:not(.ant-btn-disabled) { color: #fff; }
+.storefront-cart {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(245px, 320px);
+  align-items: start;
+  gap: 24px;
+}
+.storefront-cart__items,
+.storefront-cart__totals { list-style: none; margin: 0; padding: 0; }
+.storefront-cart__items { display: grid; gap: 12px; }
+.storefront-cart__item {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto auto;
+  align-items: start;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  background: var(--app-container-bg);
+}
+.storefront-cart__photo { overflow: hidden; border-radius: 8px; }
+.storefront-cart__photo .storefront-picture__image > span { font-size: 24px; }
+.storefront-cart__product h3,
+.storefront-cart__product p { margin: 0; }
+.storefront-cart__quantity label { display: block; margin-bottom: 4px; }
+.storefront-cart__controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.storefront-cart__controls .ant-input-number { width: 80px; }
+.storefront-cart__remove { align-self: center; justify-self: start; }
+.storefront-cart__totals { font-size: 24px; font-weight: 600; overflow-wrap: anywhere; }
+.storefront-cart__note { color: var(--app-muted-text); }
+.storefront-cart__footer { align-self: start; }
+.storefront-cart__state.ant-result { padding-inline: 16px; }
+.storefront-cart__state .ant-result-icon .anticon { color: #7c3aed; }
+:root[data-theme="dark"] .storefront-cart__state .ant-result-icon .anticon { color: #a78bfa; }
+.storefront-add .ant-btn,
+.storefront-cart__item .ant-btn,
+.storefront-cart__footer .ant-btn,
+.storefront-cart__state .ant-btn { min-height: 44px; }
+.storefront-cart__controls .ant-input-number-input { min-height: 42px; }
+@media (max-width: 1023px) {
+  .storefront-cart { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .storefront-cart__item { grid-template-columns: 48px minmax(0, 1fr); gap: 12px; }
+  .storefront-cart__quantity, .storefront-cart__remove { grid-column: 2; }
+}

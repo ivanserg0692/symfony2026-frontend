@@ -7,14 +7,14 @@ import { useLocale } from "@/hooks/use-locale";
 import { getLocalizedPath } from "@/lib/i18n";
 import type { CatalogElement } from "@/types/catalog";
 import { CatalogPicture, PictureAttribution } from "../catalog-picture";
-import { effectiveCatalogPrice } from "./price";
+import { effectiveCatalogPrice, formatCatalogAmount } from "./price";
 
 export const ProductPrice = ({ product }: { product: CatalogElement }) => {
   const translate = useTranslate();
   const locale = useLocale();
   const price = effectiveCatalogPrice(product.productPrices);
   return <p className="storefront-product__price">{price
-    ? `${new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(price.amount / 100)} ${price.currency}`
+    ? formatCatalogAmount(locale, price.amount, price.currency)
     : translate("shop.priceUnavailable")}</p>;
 };
 

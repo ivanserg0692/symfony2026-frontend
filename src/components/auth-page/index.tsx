@@ -3,6 +3,8 @@ import { Turnstile } from "@marsidev/react-turnstile";
 import type { AuthPageProps } from "@refinedev/core";
 import {
   AuthPage as AuthPageBase,
+  useGo,
+  useInvalidateAuthStore,
   useLogin,
   useTranslate,
 } from "@refinedev/core";
@@ -22,9 +24,9 @@ type LoginFormValues = {
 
 const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
-export const AuthPage = (props: AuthPageProps) => {
+export const AuthPage = ({ returnTo, ...props }: AuthPageProps & { returnTo?: string }) => {
   if (props.type === "login") {
-    return <LoginPage />;
+    return <LoginPage returnTo={returnTo} />;
   }
 
   return (
@@ -51,8 +53,20 @@ export const AuthPage = (props: AuthPageProps) => {
   );
 };
 
-const LoginPage = () => {
-  const login = useLogin<LoginVariables>();
+const LoginPage = ({ returnTo }: { returnTo?: string }) => {
+  const go = useGo();
+  const invalidateAuth = useInvalidateAuthStore();
+  const login = useLogin<LoginVariables>({
+    mutationOptions: {
+      onSuccess: async ({ success, redirectTo }) => {
+        if (!success) return;
+        // Refine's default handler prefers the raw "to" query parameter.
+        await invalidateAuth();
+        const destination = returnTo ?? redirectTo;
+        if (destination) go({ to: destination, type: "replace" });
+      },
+    },
+  });
   const translate = useTranslate();
   const { token } = theme.useToken();
   const [email, setEmail] = useState("");
