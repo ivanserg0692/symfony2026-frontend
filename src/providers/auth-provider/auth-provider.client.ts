@@ -22,6 +22,14 @@ const getAuthRedirectPath = (path: string) => {
   );
 };
 
+/**
+ * Registered with Refine to handle browser actions: login, logout,
+ * session checks, and fetching the current user and their roles.
+ * For example, useLogin().mutate(...) calls this object's login method.
+ * apiFetch uses credentials: "include" so the browser sends cookies to the API.
+ * The Symfony API validates passwords and tokens; authProviderServer checks
+ * the session on the Next.js server before rendering the page.
+ */
 export const authProviderClient: AuthProvider = {
   login: async ({ email, username, password, turnstileToken }) => {
     try {

@@ -1,5 +1,11 @@
 export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8001/api/v1";
+
+type ApiQueryScalar = string | number | boolean;
+export type ApiQuery = Record<
+  string,
+  ApiQueryScalar | readonly ApiQueryScalar[] | null | undefined
+>;
 
 type CsrfToken = {
   token: string;
@@ -20,6 +26,10 @@ type ApiFetchState = {
 };
 
 export class ApiError extends Error {
+  get statusCode() {
+    return this.status;
+  }
+
   constructor(
     message: string,
     public readonly status: number,
@@ -38,14 +48,19 @@ export class ApiClient {
 
   buildApiUrl(
     path: string,
-    query?: Record<string, string | number | boolean | undefined>,
+    query?: ApiQuery,
   ) {
     const url = new URL(
       `${this.apiUrl}${path.startsWith("/") ? path : `/${path}`}`,
     );
 
     Object.entries(query ?? {}).forEach(([key, value]) => {
-      if (value !== undefined && value !== "") {
+      if (Array.isArray(value)) {
+        const arrayKey = `${key}[]`;
+        url.searchParams.delete(key);
+        url.searchParams.delete(arrayKey);
+        value.forEach((item) => url.searchParams.append(arrayKey, String(item)));
+      } else if (value !== undefined && value !== null && value !== "") {
         url.searchParams.set(key, String(value));
       }
     });
@@ -177,19 +192,29 @@ export class ApiClient {
 
     const contentType = response.headers.get("Content-Type") ?? "";
 
-    return contentType.includes("application/json")
-      ? await response.json()
-      : await response.text();
+    const text = await response.text();
+    if (!text) {
+      return undefined;
+    }
+    if (contentType.includes("application/json") || contentType.includes("+json")) {
+      try {
+        return JSON.parse(text) as unknown;
+      } catch (error) {
+        if (response.ok) {
+          throw error;
+        }
+      }
+    }
+    return text;
   }
 
   private createApiError(response: Response, body: unknown) {
-    const message =
-      typeof body === "object" &&
-      body !== null &&
-      "message" in body &&
-      typeof body.message === "string"
-        ? body.message
-        : response.statusText;
+    const fields = typeof body === "object" && body !== null
+      ? body as Record<string, unknown>
+      : {};
+    const message = [fields.message, fields.detail, fields.error, fields.title, body]
+      .find((value): value is string => typeof value === "string" && value.length > 0)
+      ?? (response.statusText || `HTTP ${response.status}`);
 
     return new ApiError(message, response.status, body);
   }
@@ -222,7 +247,7 @@ export const createApiClient = () => new ApiClient(API_URL);
 
 export const buildApiUrl = (
   path: string,
-  query?: Record<string, string | number | boolean | undefined>,
+  query?: ApiQuery,
 ) => createApiClient().buildApiUrl(path, query);
 
 export const apiFetch = async <T>(
