@@ -1,6 +1,6 @@
 "use client";
 
-import { AppstoreOutlined, ShoppingCartOutlined, UserOutlined } from "@ant-design/icons";
+import { AppstoreOutlined, GlobalOutlined, ShoppingCartOutlined, UserOutlined } from "@ant-design/icons";
 import { useIsAuthenticated, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Input } from "antd";
 import Link from "next/link";
@@ -35,8 +35,8 @@ export const StorefrontLayout = ({ children }: PropsWithChildren) => {
           <Link className="storefront__brand" href={home} aria-label={translate("storefront.home")}>
             {translate("storefront.brand")}
           </Link>
-          <Button type="primary" href={getLocalizedPath(locale, "/catalog")} icon={<AppstoreOutlined />}>
-            {translate("storefront.catalog")}
+          <Button className="storefront__compact-action" type="primary" href={getLocalizedPath(locale, "/catalog")} icon={<AppstoreOutlined />} aria-label={translate("storefront.catalog")}>
+            <span className="storefront__action-label">{translate("storefront.catalog")}</span>
           </Button>
           <div className="storefront__search">
             <Input.Search value={search} onChange={(event) => setSearch(event.target.value)} onSearch={(query) => {
@@ -59,13 +59,19 @@ export const StorefrontLayout = ({ children }: PropsWithChildren) => {
                     { key: "news", label: <Link href={getLocalizedPath(locale, "/news")}>{translate("news.title")}</Link> },
                   ] }}
                 >
-                  <Button icon={<UserOutlined />}>{translate("storefront.account")}</Button>
+                  <Button className="storefront__compact-action" icon={<UserOutlined />} aria-label={translate("storefront.account")}>
+                    <span className="storefront__action-label">{translate("storefront.account")}</span>
+                  </Button>
                 </Dropdown>
               </>
             ) : (
-              <Button href={getLocalizedPath(locale, "/login")} icon={<UserOutlined />}>{translate("auth.actions.login")}</Button>
+              <Button className="storefront__compact-action" href={getLocalizedPath(locale, "/login")} icon={<UserOutlined />} aria-label={translate("auth.actions.login")}>
+                <span className="storefront__action-label">{translate("auth.actions.login")}</span>
+              </Button>
             ))}
-            <Button disabled icon={<ShoppingCartOutlined />}>{translate("storefront.cart")}</Button>
+            <Button className="storefront__compact-action" disabled icon={<ShoppingCartOutlined />} aria-label={translate("storefront.cart")}>
+              <span className="storefront__action-label">{translate("storefront.cart")}</span>
+            </Button>
             <ThemeSelector />
             <Dropdown
               trigger={["click"]}
@@ -74,7 +80,9 @@ export const StorefrontLayout = ({ children }: PropsWithChildren) => {
                 items: locales.map((item) => ({ key: item, label: <Link href={localizeRoute(item, pathname) + (searchParams.size ? `?${searchParams}` : "")} lang={item}>{translate(`language.${item}`)}</Link> })),
               }}
             >
-              <Button aria-label={translate("storefront.language")}>{translate(`language.${locale}`)}</Button>
+              <Button className="storefront__compact-action" icon={<GlobalOutlined />} aria-label={translate("storefront.language")}>
+                <span className="storefront__action-label">{translate(`language.${locale}`)}</span>
+              </Button>
             </Dropdown>
           </nav>
         </div>

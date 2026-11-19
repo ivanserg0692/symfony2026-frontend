@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useLocale } from "@/hooks/use-locale";
 import { getLocalizedPath } from "@/lib/i18n";
 import type { CatalogElement } from "@/types/catalog";
-import { CatalogPicture } from "../catalog-picture";
+import { CatalogPicture, PictureAttribution } from "../catalog-picture";
 import { effectiveCatalogPrice } from "./price";
 
 export const ProductPrice = ({ product }: { product: CatalogElement }) => {
@@ -26,6 +26,7 @@ export const ProductCard = ({ product }: { product: CatalogElement }) => {
       <h3><Link href={getLocalizedPath(locale, `/product/${product.id}`)}>{product.name || translate("storefront.unnamedProduct")}</Link></h3>
       <ProductPrice product={product} />
       <p>{translate(product.totalStock > 0 ? "shop.inStock" : "shop.outOfStock")}</p>
+      <PictureAttribution picture={product.picture} />
     </Card>
   );
 };

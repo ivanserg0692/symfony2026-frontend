@@ -48,6 +48,7 @@ export const ru = {
     unnamedSection: "Раздел без названия",
     unnamedProduct: "Товар без названия",
     noImage: "Нет изображения",
+    imageAttribution: "Об авторстве фото",
   },
   auth: {
     login: {

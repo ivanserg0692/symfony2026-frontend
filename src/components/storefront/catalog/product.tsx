@@ -26,11 +26,13 @@ export const StorefrontProduct = ({ id }: { id: number }) => {
       { title: name },
     ]} />
     <article className="storefront-detail">
-      <CatalogPicture picture={product.picture} name={name} full />
-      <div>
+      <header className="storefront-detail__heading">
         <h1>{name}</h1>
         <ProductPrice product={product} />
         <p>{translate(product.totalStock > 0 ? "shop.inStock" : "shop.outOfStock")}</p>
+      </header>
+      <CatalogPicture picture={product.picture} name={name} full />
+      <div className="storefront-detail__content">
         <section aria-labelledby="product-description"><h2 id="product-description">{translate("shop.description")}</h2><p className="storefront-detail__description">{product.description || translate("shop.noDescription")}</p></section>
         <section aria-labelledby="product-sections"><h2 id="product-sections">{translate("storefront.sections")}</h2>
           <ul className="storefront-section-links">{product.sections.filter((section) => section.active === true).map((section) => <li key={section.id}><Link href={getLocalizedPath(locale, `/category/${section.id}`)}>{section.name || translate("storefront.unnamedSection")}</Link></li>)}</ul>

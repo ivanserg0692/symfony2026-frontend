@@ -48,6 +48,7 @@ export const en = {
     unnamedSection: "Unnamed section",
     unnamedProduct: "Unnamed product",
     noImage: "No image",
+    imageAttribution: "Photo credits",
   },
   auth: {
     login: {

@@ -5,6 +5,21 @@ import { useTranslate } from "@refinedev/core";
 import { useState } from "react";
 import type { CatalogPicture as Picture } from "@/types/catalog";
 
+export const PictureAttribution = ({ picture }: { picture: Picture | null }) => {
+  const translate = useTranslate();
+  if (!picture?.attribution) return null;
+
+  return (
+    <details className="storefront-picture__attribution">
+      <summary>{translate("storefront.imageAttribution")}</summary>
+      <div>
+        <a href={picture.sourceUrl} target="_blank" rel="noopener noreferrer">{picture.attribution}</a>
+        {" · "}<a href={picture.licenseUrl} target="_blank" rel="noopener noreferrer">{picture.license}</a>
+      </div>
+    </details>
+  );
+};
+
 export const CatalogPicture = ({ picture, name, full = false }: { picture: Picture | null; name: string; full?: boolean }) => {
   const translate = useTranslate();
   const [failedUrl, setFailedUrl] = useState<string>();
@@ -21,11 +36,8 @@ export const CatalogPicture = ({ picture, name, full = false }: { picture: Pictu
           <span role="img" aria-label={translate("storefront.noImage")}><PictureOutlined /></span>
         )}
       </div>
-      {picture?.attribution && (
-        <figcaption>
-          <a href={picture.sourceUrl} target="_blank" rel="noopener noreferrer">{picture.attribution}</a>
-          {" · "}<a href={picture.licenseUrl} target="_blank" rel="noopener noreferrer">{picture.license}</a>
-        </figcaption>
+      {full && picture?.attribution && (
+        <figcaption><PictureAttribution picture={picture} /></figcaption>
       )}
     </figure>
   );

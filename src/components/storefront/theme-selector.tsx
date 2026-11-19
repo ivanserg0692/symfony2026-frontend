@@ -30,10 +30,11 @@ export const ThemeSelector = () => {
       }}
     >
       <Button
+        className="storefront__compact-action"
         icon={options.find((item) => item.key === preference)?.icon}
         aria-label={translate("theme.select")}
       >
-        {translate(`theme.actions.${preference}`)}
+        <span className="storefront__action-label">{translate(`theme.actions.${preference}`)}</span>
       </Button>
     </Dropdown>
   );
