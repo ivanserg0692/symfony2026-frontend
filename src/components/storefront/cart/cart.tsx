@@ -12,20 +12,20 @@ import type { CartItem } from "@/types/cart";
 import type { CatalogElementDetail } from "@/types/catalog";
 import { CatalogPicture, PictureAttribution } from "../catalog-picture";
 import { effectiveCatalogPrice, formatCatalogAmount } from "../catalog/price";
-import { useCart, useCartActions, useCartIdentity, useCartProducts } from "./use-cart";
+import { useCartSession } from "./cart-provider";
+import { useCartActions, useCartProducts } from "./use-cart";
 
 export function StorefrontCart() {
   const translate = useTranslate();
   const locale = useLocale();
-  const identity = useCartIdentity();
-  const ownerId = identity.data?.id;
+  const { ownerId, checkingIdentity } = useCartSession();
   const login = loginWithReturn(locale, getLocalizedPath(locale, "/cart"));
 
   return (
     <>
       <h1>{translate("storefront.cart")}</h1>
-      {identity.isFetching ? <Skeleton active /> : ownerId ? (
-        <CartContents key={ownerId} ownerId={ownerId} login={login} />
+      {checkingIdentity ? <Skeleton active /> : ownerId ? (
+        <CartContents key={ownerId} login={login} />
       ) : <SignInRequired login={login} />}
     </>
   );
@@ -40,10 +40,10 @@ function SignInRequired({ login }: { login: string }) {
   );
 }
 
-function CartContents({ ownerId, login }: { ownerId: number; login: string }) {
+function CartContents({ login }: { login: string }) {
   const translate = useTranslate();
   const locale = useLocale();
-  const cart = useCart(ownerId);
+  const { cart } = useCartSession();
   const actions = useCartActions();
   const items = cart.data?.data.items ?? [];
   const details = useCartProducts(items);

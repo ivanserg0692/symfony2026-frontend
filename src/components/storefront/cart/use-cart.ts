@@ -1,27 +1,12 @@
 "use client";
 
-import { useCustom, useDataProvider, useGetIdentity, useInvalidate, useOnError } from "@refinedev/core";
-import { useRef, useState } from "react";
+import { useCustom, useDataProvider, useInvalidate, useOnError } from "@refinedev/core";
+import { useState } from "react";
 import { ApiError } from "@/lib/api-client";
-import type { AddCartItem, Cart, CartItem, UpdateCartItem } from "@/types/cart";
+import type { AddCartItem, CartItem, UpdateCartItem } from "@/types/cart";
 import type { CatalogElementDetail } from "@/types/catalog";
 
-export function useCartIdentity() {
-  return useGetIdentity<{ id?: number } | null>({
-    queryOptions: { refetchOnMount: "always" },
-  });
-}
-
-export function useCart(ownerId: number) {
-  return useCustom<Pick<Cart, "items">>({
-    dataProviderName: "cart",
-    url: "/cart",
-    method: "get",
-    meta: { ownerId },
-    queryOptions: { gcTime: 0, retry: false, refetchOnWindowFocus: false },
-    errorNotification: false,
-  }).query;
-}
+import { useCartSession } from "./cart-provider";
 
 export function useCartProducts(items: CartItem[]) {
   const catalog = useDataProvider()("catalog");
@@ -59,14 +44,11 @@ export function useCartActions() {
   const cart = useDataProvider()("cart");
   const invalidate = useInvalidate();
   const { mutate: handleAuthError } = useOnError();
-  const pending = useRef(false);
-  const [busy, setBusy] = useState(false);
+  const { busy, startMutation, finishMutation } = useCartSession();
   const [error, setError] = useState<string>();
 
   async function run(action: () => Promise<unknown>) {
-    if (pending.current) return false;
-    pending.current = true;
-    setBusy(true);
+    if (!startMutation()) return false;
     setError(undefined);
 
     try {
@@ -82,8 +64,7 @@ export function useCartActions() {
       setError(cartError(failure));
       return false;
     } finally {
-      pending.current = false;
-      setBusy(false);
+      finishMutation();
     }
   }
 

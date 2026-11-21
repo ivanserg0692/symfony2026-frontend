@@ -3,6 +3,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { Refine } from "@refinedev/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { StorefrontCatalog } from "../../../src/components/storefront/catalog/catalog";
+import { CartProvider } from "../../../src/components/storefront/cart/cart-provider";
 import { StorefrontProduct } from "../../../src/components/storefront/catalog/product";
 import { StorefrontLayout } from "../../../src/components/storefront/layout";
 import { dataProviders } from "../../../src/providers/data-provider";
@@ -50,7 +51,7 @@ describe("catalog pages with real providers", () => {
 
   const mount = async (children: ReactNode) => {
     await act(async () => root.render(<AppThemeProvider><Refine dataProvider={dataProviders} i18nProvider={i18nProvider}
-      options={{ disableTelemetry: true, reactQuery: { clientConfig: { defaultOptions: { queries: { retry: false } } } } }}>{children}</Refine></AppThemeProvider>));
+      options={{ disableTelemetry: true, reactQuery: { clientConfig: { defaultOptions: { queries: { retry: false } } } } }}><CartProvider>{children}</CartProvider></Refine></AppThemeProvider>));
     await act(async () => { await vi.waitFor(() => expect(container.querySelector(".ant-skeleton")).toBeNull()); });
   };
   const elementsRequests = () => fetchMock.mock.calls.map(([url]) => new URL(String(url))).filter((url) => url.pathname.endsWith("/catalog/elements"));

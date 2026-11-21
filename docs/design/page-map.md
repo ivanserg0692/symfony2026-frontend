@@ -37,7 +37,7 @@ API paths in this table omit `/api/v1`.
 | `/` | Search header, static hero/CTA, category navigation, catalog rows, news previews | GET sections/elements/news | Partial: ordinary catalog selections; no popularity, personalization or banner-management API |
 | `/catalog` | Search input, category/price/stock filters, active filter chips, product grid, pagination | GET catalog/elements and catalog/sections | Partial: Elasticsearch filters; no user sorting; media unresolved |
 | `/category/{id}` | Category heading/description, breadcrumbs, children, filtered grid | GET catalog/sections/{id}, sections, elements with sectionIds[] | Partial: assemble tree and descendant IDs; numeric ID lookup |
-| `/product/{id}` | Single image/fallback, title, price, availability, quantity, add button, description/categories | GET catalog/elements/{id}; POST cart/items | Partial: no gallery, variants, specs/reviews; login required to add |
+| `/product/{id}` | Single image/fallback, title, price, availability, add button or editable cart quantity, description/categories | GET catalog/elements/{id}; GET cart; POST/PATCH cart/items | Partial: no gallery, variants, specs/reviews; login required to add |
 | `/cart` | Product rows, quantity stepper, remove/clear, estimated totals, confirmation CTA | GET/PATCH/DELETE cart; POST cart/items; GET elements/{id} per product | Partial: cart has IDs/quantities only; no batch enrichment or authoritative quote |
 | `/checkout` | Review cart, price-change/error notice, confirmation button, created-order result | GET cart + catalog details; POST orders; GET orders/{id} | Partial: creates an order; no address/delivery/payment payload |
 | `/login` | Email/password, Turnstile, validation/error/pending states | GET auth/csrf, POST auth/login, GET auth/me | Supported contract; browser cookies/CORS and Turnstile configuration must work |
@@ -54,6 +54,8 @@ API paths in this table omit `/api/v1`.
 ### Main shopping flow
 
 Guest browses home/catalog/category/product. Add-to-cart requires login. After successful login, the future implementation should preserve the intended destination/action through an explicitly approved return flow; the existing login currently redirects to news. Do not silently change authentication behavior in a documentation task.
+
+The header shows the total number of units in the cart. Hover or activate the cart button to open a panel with product quantities, removal controls and a link to the full cart. The product page uses the same saved quantity.
 
 An authenticated buyer edits the server cart, reviews an estimated total and confirms creation. The server determines final prices and inventory; the success screen uses the created order and then its snapshot-backed detail. A failed checkout must not display success or assume the cart was cleared. Avoid automatic retries of non-idempotent purchase operations without an agreed backend contract.
 
@@ -88,7 +90,7 @@ Candidate first scope: public discovery, reduced product detail, existing login,
 | `/` | Шапка/поиск, статический баннер/CTA, категории, товарные ряды, новости | GET sections/elements/news | Частично: обычные выборки; нет популярности, персонализации, управления баннерами |
 | `/catalog` | Поиск, категории/цена/наличие, chips фильтров, сетка, пагинация | GET catalog/elements, catalog/sections | Частично: фильтры Elasticsearch; нет выбора сортировки, media URL |
 | `/category/{id}` | Заголовок/описание, breadcrumbs, подкатегории, товары | GET catalog/sections/{id}, sections, elements с sectionIds[] | Частично: дерево/ID потомков собрать; числовой ID |
-| `/product/{id}` | Одно изображение/fallback, название, цена, наличие, количество, покупка, описание/категории | GET catalog/elements/{id}; POST cart/items | Частично: нет галереи, вариантов, характеристик/отзывов; для покупки вход |
+| `/product/{id}` | Одно изображение/fallback, название, цена, наличие, добавление или изменение количества в корзине, описание/категории | GET catalog/elements/{id}; GET cart; POST/PATCH cart/items | Частично: нет галереи, вариантов, характеристик/отзывов; для покупки вход |
 | `/cart` | Позиции, количество, удаление/очистка, предварительные суммы, CTA | Cart GET/PATCH/DELETE, POST cart/items; GET elements/{id} для каждой позиции | Частично: корзина содержит ID/количество, нет batch enrichment и серверного quote |
 | `/checkout` | Проверка состава, ошибки/изменение цены, подтверждение, результат | GET cart + детали товаров; POST orders; GET orders/{id} | Частично: заказ создаётся, но адреса/доставки/оплаты нет |
 | `/login` | Email/password, Turnstile, валидация, ошибки/pending | GET auth/csrf, POST auth/login, GET auth/me | Контракт поддерживается; нужны рабочие cookies/CORS/Turnstile |
@@ -105,6 +107,8 @@ Candidate first scope: public discovery, reduced product detail, existing login,
 ### Основной путь покупки
 
 Гость просматривает главную/каталог/категорию/товар. Добавление требует входа. Возврат к исходному действию после login нужно явно согласовать при реализации: сейчас вход перенаправляет на новости. Документирование не меняет авторизацию.
+
+Шапка показывает общее количество единиц в корзине. По наведению или нажатию открывается панель с количеством по позициям, удалением и ссылкой на полную корзину. Страница товара отображает то же сохранённое количество.
 
 Пользователь редактирует серверную корзину, видит предварительный итог и подтверждает создание. Финальные цены/остатки определяет сервер. Успех отображается по созданному заказу и затем деталям со снимками. Ошибка checkout не означает успех или очистку корзины. Автоповторы неидемпотентной покупки требуют согласованного backend-контракта.
 

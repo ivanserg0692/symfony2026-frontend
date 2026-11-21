@@ -31,7 +31,7 @@ export const StorefrontProduct = ({ id }: { id: number }) => {
         <h1>{name}</h1>
         <ProductPrice product={product} />
         <p>{translate(product.totalStock > 0 ? "shop.inStock" : "shop.outOfStock")}</p>
-        <AddToCart id={product.id} available={product.totalStock > 0} />
+        <AddToCart id={product.id} name={name} stock={product.totalStock} />
       </header>
       <CatalogPicture picture={product.picture} name={name} full />
       <div className="storefront-detail__content">

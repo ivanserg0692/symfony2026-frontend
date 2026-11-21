@@ -5,6 +5,8 @@ import type { PropsWithChildren } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AddToCart } from "@/components/storefront/cart/add-to-cart";
 import { StorefrontCart } from "@/components/storefront/cart/cart";
+import { CartMenu } from "@/components/storefront/cart/cart-menu";
+import { CartProvider } from "@/components/storefront/cart/cart-provider";
 import { safeLoginReturn } from "@/lib/login-return";
 import { authProviderClient } from "@/providers/auth-provider/auth-provider.client";
 import { dataProviders } from "@/providers/data-provider";
@@ -25,7 +27,7 @@ function TestApp({ children }: PropsWithChildren) {
     <AppThemeProvider>
       <Refine authProvider={authProviderClient} dataProvider={dataProviders} i18nProvider={i18nProvider}
         options={{ disableTelemetry: true }}>
-        {children}
+        <CartProvider>{children}</CartProvider>
         <RefreshIdentity />
       </Refine>
     </AppThemeProvider>
@@ -79,8 +81,11 @@ describe("storefront cart", () => {
       }
       if (path === "/cart/items" && method === "POST") {
         if (addStatus !== 200) return json({}, addStatus);
-        const item = { ...items[0], quantity: items[0].quantity + body.quantity };
-        items = [item, ...items.slice(1)];
+        const existing = items.find(({ catalogElementId }) => catalogElementId === body.productId);
+        const item = existing
+          ? { ...existing, quantity: existing.quantity + body.quantity }
+          : position(21, body.productId, body.quantity);
+        items = [item, ...items.filter(({ id }) => id !== item.id)];
         return json(item, 201);
       }
       if (path === "/cart/items/21" && method === "PATCH") {
@@ -92,8 +97,8 @@ describe("storefront cart", () => {
         items = [];
         return new Response(null, { status: 204 });
       }
-      if (path === "/cart/items/22" && method === "DELETE") {
-        items = items.filter((item) => item.id !== 22);
+      if (/^\/cart\/items\/\d+$/.test(path) && method === "DELETE") {
+        items = items.filter((item) => !path.endsWith(`/${item.id}`));
         return new Response(null, { status: 204 });
       }
       throw new Error(`Unexpected ${method} ${path}`);
@@ -111,12 +116,25 @@ describe("storefront cart", () => {
   };
   const buttons = (label: string) => Array.from(document.querySelectorAll("button"))
     .filter((button) => button.textContent?.trim() === label);
+  const cartTrigger = () => container.querySelector<HTMLButtonElement>(".storefront-cart-menu button")!;
+  const stepper = (within: ParentNode, name = "Клавиатура") =>
+    within.querySelector<HTMLElement>(`[aria-label="Количество: ${name}"]`)!;
+  const increase = (within: ParentNode) => within.querySelector<HTMLButtonElement>('[aria-label="Увеличить количество: Клавиатура"]')!;
+  const decrease = (within: ParentNode) => within.querySelector<HTMLButtonElement>('[aria-label="Уменьшить количество: Клавиатура"]')!;
   const links = () => Array.from(container.querySelectorAll("a"), (anchor) => anchor.getAttribute("href"));
   const text = () => container.textContent ?? "";
-  const waitFor = (assertion: () => void) => vi.waitFor(async () => {
-    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 20)); });
-    assertion();
-  }, { interval: 0, timeout: 3000 });
+  const waitFor = async (assertion: () => void) => {
+    const deadline = Date.now() + 3000;
+    while (true) {
+      await act(async () => { await new Promise((resolve) => setTimeout(resolve, 20)); });
+      try {
+        assertion();
+        return;
+      } catch (error) {
+        if (Date.now() >= deadline) throw error;
+      }
+    }
+  };
   const click = (button: HTMLButtonElement) => act(async () => button.click());
   const change = (input: HTMLInputElement, value: string) => act(async () => {
     Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, value);
@@ -125,20 +143,72 @@ describe("storefront cart", () => {
 
   it("offers a localized sign-in from the cart and item without requesting cart data for a guest", async () => {
     ownerId = null;
-    await mount(<><StorefrontCart /><AddToCart id={7} available /></>);
+    await mount(<><CartMenu /><StorefrontCart /><AddToCart id={7} name="Клавиатура" stock={5} /></>);
     await waitFor(() => expect(links()).toContain("/ru/login?to=%2Fru%2Fcart"));
     expect(links()).toContain("/ru/login?to=%2Fru%2Fproduct%2F7");
+    await click(cartTrigger());
+    await waitFor(() => expect(cartTrigger()).toHaveAttribute("aria-expanded", "true"));
+    expect(links()).toContain("/ru/cart");
+    expect(container.querySelector(".storefront-cart-menu__panel a")?.getAttribute("href")).toBe("/ru/login?to=%2Fru%2Fcart");
     expect(requests.filter(({ path }) => path.startsWith("/cart"))).toEqual([]);
   });
 
-  it("adds one unit to an existing position and refreshes the total", async () => {
-    await mount(<><StorefrontCart /><AddToCart id={7} available /></>);
-    await waitFor(() => expect(text()).toContain("246,90"));
-    await click(buttons("В корзину")[0]);
-    await waitFor(() => expect(text()).toContain("Товар добавлен"));
+  it("shows the saved quantity and synchronizes edits from the product, panel and full cart", async () => {
+    await mount(<><CartMenu /><StorefrontCart /><AddToCart id={7} name="Клавиатура" stock={5} /></>);
+    const product = () => container.querySelector<HTMLElement>(".storefront-add")!;
+    await waitFor(() => expect(stepper(product())).toHaveTextContent("2"));
+    expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 3");
+    expect(buttons("В корзину")).toHaveLength(0);
+
+    await act(async () => cartTrigger().dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
+    await waitFor(() => expect(cartTrigger()).toHaveAttribute("aria-expanded", "true"));
+    const panel = container.querySelector<HTMLElement>(".storefront-cart-menu__panel")!;
+    await waitFor(() => expect(stepper(panel)).toHaveTextContent("2"));
+    expect(panel.querySelector('a[href="/ru/cart"]')).toHaveTextContent("Перейти в корзину");
+    expect(panel).toHaveTextContent("Товар №404");
+
+    await click(increase(product()));
+    await waitFor(() => expect(stepper(panel)).toHaveTextContent("3"));
     expect(text()).toContain("370,35");
+    expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 4");
+
+    itemUpdateStatus = 400;
+    await click(decrease(panel));
+    await waitFor(() => expect(panel).toHaveTextContent("Не удалось сохранить количество"));
+    expect(stepper(product())).toHaveTextContent("3");
+    expect(stepper(panel)).toHaveTextContent("3");
+
+    itemUpdateStatus = 200;
+    await click(decrease(panel));
+    await waitFor(() => expect(stepper(product())).toHaveTextContent("2"));
+    expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 3");
+
+    const input = container.querySelector<HTMLInputElement>("#cart-quantity-21")!;
+    await change(input, "4");
+    await click(buttons("Сохранить")[0]);
+    await waitFor(() => expect(stepper(panel)).toHaveTextContent("4"));
+    expect(stepper(product())).toHaveTextContent("4");
+    expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 5");
+
+    await click(panel.querySelector<HTMLButtonElement>('button[aria-label="Удалить: Клавиатура"]')!);
+    await waitFor(() => expect(buttons("В корзину")[0]).toBeEnabled());
+    expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 1");
+
+    await act(async () => panel.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
+    expect(cartTrigger()).toHaveAttribute("aria-expanded", "false");
+    expect(document.activeElement).toBe(cartTrigger());
+  });
+
+  it("adds a new product and replaces the add button with its quantity", async () => {
+    items = [];
+    await mount(<><CartMenu /><AddToCart id={7} name="Клавиатура" stock={5} /></>);
+    const product = () => container.querySelector<HTMLElement>(".storefront-add")!;
+    await waitFor(() => expect(buttons("В корзину")[0]).toBeEnabled());
+    await click(buttons("В корзину")[0]);
+    await waitFor(() => expect(stepper(product())).toHaveTextContent("1"));
+    expect(decrease(product())).toBeDisabled();
+    expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 1");
     expect(requests).toContainEqual({ path: "/cart/items", method: "POST", body: { productId: 7, quantity: 1 } });
-    expect(text()).toContain("вошли только доступные");
   });
 
   it("restores saved quantity on failure, saves an absolute value, removes and clears with 204", async () => {
@@ -169,14 +239,15 @@ describe("storefront cart", () => {
   });
 
   it.each([404, 409, 503])("reports an unsuccessful add (%s) without changing the cart", async (status) => {
+    items = [];
     addStatus = status;
-    await mount(<AddToCart id={7} available />);
+    await mount(<AddToCart id={7} name="Клавиатура" stock={5} />);
     await waitFor(() => expect(buttons("В корзину")[0]).toBeEnabled());
     await click(buttons("В корзину")[0]);
     await waitFor(() => expect(container.querySelector('[role="alert"]')).toHaveTextContent(
       status === 404 ? "Товар недоступен" : status === 409 ? "Недостаточно товара" : "Не удалось обновить корзину",
     ));
-    expect(text()).not.toContain("Товар добавлен");
+    expect(buttons("В корзину")[0]).toBeEnabled();
   });
 
   it("drops previous owner data on identity change and shows login on an expired session", async () => {

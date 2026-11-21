@@ -1,6 +1,6 @@
 "use client";
 
-import { AppstoreOutlined, GlobalOutlined, ShoppingCartOutlined, UserOutlined } from "@ant-design/icons";
+import { AppstoreOutlined, GlobalOutlined, UserOutlined } from "@ant-design/icons";
 import { useIsAuthenticated, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Input } from "antd";
 import Link from "next/link";
@@ -9,9 +9,15 @@ import { useEffect, useState, type PropsWithChildren } from "react";
 import { Notifications } from "@/components/notifications";
 import { useLocale } from "@/hooks/use-locale";
 import { getLocalizedPath, locales, localizeRoute } from "@/lib/i18n";
+import { CartMenu } from "./cart/cart-menu";
+import { CartProvider } from "./cart/cart-provider";
 import { ThemeSelector } from "./theme-selector";
 
-export const StorefrontLayout = ({ children }: PropsWithChildren) => {
+export const StorefrontLayout = ({ children }: PropsWithChildren) => (
+  <CartProvider><StorefrontShell>{children}</StorefrontShell></CartProvider>
+);
+
+const StorefrontShell = ({ children }: PropsWithChildren) => {
   const translate = useTranslate();
   const locale = useLocale();
   const pathname = usePathname();
@@ -69,9 +75,7 @@ export const StorefrontLayout = ({ children }: PropsWithChildren) => {
                 <span className="storefront__action-label">{translate("auth.actions.login")}</span>
               </Button>
             ))}
-            <Button className="storefront__compact-action" href={getLocalizedPath(locale, "/cart")} icon={<ShoppingCartOutlined />} aria-label={translate("storefront.cart")}>
-              <span className="storefront__action-label">{translate("storefront.cart")}</span>
-            </Button>
+            <CartMenu />
             <ThemeSelector />
             <Dropdown
               trigger={["click"]}

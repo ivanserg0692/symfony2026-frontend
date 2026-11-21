@@ -349,6 +349,51 @@
 .storefront-add { display: grid; gap: 12px; justify-items: start; margin-top: 16px; }
 .storefront-add .ant-alert { max-width: 100%; }
 .storefront__main .ant-btn-primary[href]:not(.ant-btn-disabled) { color: #fff; }
+.storefront-cart-stepper.ant-space-compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.storefront-cart-stepper > span {
+  min-width: 3ch;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.storefront-cart-stepper .ant-btn { min-width: 44px; min-height: 44px; }
+.storefront-cart-menu .ant-badge { color: inherit; }
+.storefront-cart-menu .ant-badge .anticon { font-size: 16px; }
+.storefront-cart-menu__panel {
+  display: grid;
+  gap: 12px;
+  width: min(340px, calc(100vw - 56px));
+}
+.storefront-cart-menu__panel p { margin: 0; }
+.storefront-cart-menu__items {
+  display: grid;
+  gap: 8px;
+  max-height: min(360px, 42dvh);
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+}
+.storefront-cart-menu__item {
+  display: grid;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+.storefront-cart-menu__item:not(:last-child) {
+  border-bottom: 1px solid var(--app-border);
+  padding-bottom: 8px;
+}
+.storefront-cart-menu__controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px;
+}
+.storefront-cart-menu__controls .ant-btn { min-height: 44px; }
+
 .storefront-cart {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(245px, 320px);
