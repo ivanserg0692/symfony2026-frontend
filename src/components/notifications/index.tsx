@@ -193,6 +193,8 @@ export const Notifications = () => {
   return (
     <Popover
       arrow={false}
+      rootClassName="notifications-popup"
+      align={{ overflow: { shiftX: true, adjustY: true } }}
       content={
         <div className="notifications-popover">
           <div className="notifications-popover__header">
@@ -314,6 +316,7 @@ export const Notifications = () => {
       <Badge count={unreadCount} overflowCount={99} size="small">
         <Button
           aria-label={translate("notifications.title")}
+          className="notifications-trigger"
           icon={<BellOutlined />}
           shape="circle"
           type="text"

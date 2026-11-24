@@ -142,10 +142,6 @@
     @apply px-1;
   }
 
-  .notifications-popover {
-    @apply w-[min(360px,calc(100vw-32px))];
-  }
-
   .notifications-popover__header {
     @apply mb-2 flex items-center justify-between gap-3;
   }
@@ -177,6 +173,10 @@
   .notifications-list__row--unread > td {
     background: color-mix(in srgb, var(--app-unread-bg) 70%, transparent);
   }
+}
+
+.notifications-popup.ant-popover {
+  width: min(384px, calc(100% - 32px));
 }
 
 :root {
@@ -262,12 +262,26 @@
   .storefront h2 { font-size: 22px; }
 }
 
+@media (max-width: 840px) {
+  .storefront__compact-action.ant-btn { width: 44px; padding-inline: 0; }
+  .storefront__action-label { display: none; }
+}
+
 @media (max-width: 720px) {
   .storefront__header-inner { gap: 8px; padding-block: 12px; }
   .storefront__actions { gap: 4px; }
   .storefront__brand { font-size: 19px; }
-  .storefront__compact-action.ant-btn { width: 44px; padding-inline: 0; }
-  .storefront__action-label { display: none; }
+}
+
+@media (max-width: 420px) {
+  .storefront__catalog-link { margin-inline-start: auto; }
+  .storefront__actions { flex-basis: 100%; justify-content: space-between; margin-inline-start: 0; }
+  .storefront__actions .notifications-trigger.ant-btn {
+    width: 44px;
+    padding-inline: 0;
+    border-color: var(--app-border);
+    border-radius: 12px;
+  }
 }
 
 @media (max-width: 359px) {

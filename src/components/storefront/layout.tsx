@@ -41,7 +41,7 @@ const StorefrontShell = ({ children }: PropsWithChildren) => {
           <Link className="storefront__brand" href={home} aria-label={translate("storefront.home")}>
             {translate("storefront.brand")}
           </Link>
-          <Button className="storefront__compact-action" type="primary" href={getLocalizedPath(locale, "/catalog")} icon={<AppstoreOutlined />} aria-label={translate("storefront.catalog")}>
+          <Button className="storefront__compact-action storefront__catalog-link" type="primary" href={getLocalizedPath(locale, "/catalog")} icon={<AppstoreOutlined />} aria-label={translate("storefront.catalog")}>
             <span className="storefront__action-label">{translate("storefront.catalog")}</span>
           </Button>
           <div className="storefront__search">

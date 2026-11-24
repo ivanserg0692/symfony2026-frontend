@@ -33,7 +33,8 @@ export function CartMenu() {
       setOpen(false);
       trigger.current?.focus();
     }}>
-      <Popover placement="bottomRight" trigger={["hover", "click"]} open={open} onOpenChange={setOpen}
+      <Popover placement="bottom" arrow={{ pointAtCenter: true }} trigger={["hover", "click"]} open={open} onOpenChange={setOpen}
+        align={{ overflow: { shiftX: true, adjustY: true } }}
         getPopupContainer={(node) => node.parentElement!} destroyOnHidden
         content={<div id={panelId} className="storefront-cart-menu__panel">
           {checkingIdentity ? <Skeleton active paragraph={false} /> : signedIn ? (

@@ -7,6 +7,7 @@ import { AddToCart } from "@/components/storefront/cart/add-to-cart";
 import { StorefrontCart } from "@/components/storefront/cart/cart";
 import { CartMenu } from "@/components/storefront/cart/cart-menu";
 import { CartProvider } from "@/components/storefront/cart/cart-provider";
+import { ProductCard } from "@/components/storefront/catalog/product-card";
 import { safeLoginReturn } from "@/lib/login-return";
 import { authProviderClient } from "@/providers/auth-provider/auth-provider.client";
 import { dataProviders } from "@/providers/data-provider";
@@ -14,6 +15,7 @@ import { storefrontResources } from "@/providers/storefront-resources";
 import { i18nProvider } from "@/providers/i18n-provider";
 import { AppThemeProvider } from "@/providers/theme-provider";
 import type { CartItem } from "@/types/cart";
+import type { CatalogElement } from "@/types/catalog";
 import { json } from "./api-mock";
 
 vi.mock("next/navigation", () => ({
@@ -22,6 +24,18 @@ vi.mock("next/navigation", () => ({
 
 const position = (id: number, catalogElementId: number, quantity: number): CartItem =>
   ({ id, catalogElementId, quantity, sort: id, createdAt: "", updatedAt: "" });
+
+const catalogProduct: CatalogElement = {
+  id: 7,
+  name: "Клавиатура",
+  active: true,
+  totalStock: 5,
+  picture: null,
+  description: null,
+  slug: null,
+  sort: null,
+  productPrices: [],
+};
 
 function TestApp({ children }: PropsWithChildren) {
   return (
@@ -149,9 +163,10 @@ describe("storefront cart", () => {
 
   it("offers a localized sign-in from the cart and item without requesting cart data for a guest", async () => {
     ownerId = null;
-    await mount(<><CartMenu /><StorefrontCart /><AddToCart id={7} name="Клавиатура" stock={5} /></>);
+    await mount(<><CartMenu /><StorefrontCart /><ProductCard product={catalogProduct} /></>);
     await waitFor(() => expect(links()).toContain("/ru/login?to=%2Fru%2Fcart"));
-    expect(links()).toContain("/ru/login?to=%2Fru%2Fproduct%2F7");
+    expect(container.querySelector(".storefront-product .storefront-add a"))
+      .toHaveAttribute("href", "/ru/login?to=%2Fru%2Fproduct%2F7");
     await click(cartTrigger());
     await waitFor(() => expect(cartTrigger()).toHaveAttribute("aria-expanded", "true"));
     expect(links()).toContain("/ru/cart");
@@ -223,6 +238,24 @@ describe("storefront cart", () => {
     expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 1");
     expect(requests).toContainEqual({ path: "/cart/items", method: "POST", body: { productId: 7, quantity: 1 } });
     expect(cartReads()).toHaveLength(2);
+  });
+
+  it("adds a product from a catalog card and keeps its quantity in sync with the header", async () => {
+    window.history.replaceState({}, "", "/ru/catalog");
+    items = [];
+    await mount(<><CartMenu /><ProductCard product={catalogProduct} /></>);
+    const card = container.querySelector<HTMLElement>(".storefront-product")!;
+
+    await waitFor(() => expect(buttons("В корзину")[0]).toBeEnabled());
+    expect(cartReads()).toHaveLength(1);
+    await click(buttons("В корзину")[0]);
+    await waitFor(() => expect(stepper(card)).toHaveTextContent("1"));
+    expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 1");
+
+    await click(increase(card));
+    await waitFor(() => expect(stepper(card)).toHaveTextContent("2"));
+    expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 2");
+    expect(cartReads()).toHaveLength(3);
   });
 
   it("restores saved quantity on failure, saves an absolute value, removes and clears with 204", async () => {

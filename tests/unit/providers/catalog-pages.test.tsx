@@ -73,6 +73,7 @@ describe("catalog pages with real providers", () => {
     expect(params.get("page")).toBe("2"); expect(params.get("limit")).toBe("20");
     expect(container.textContent).toContain("Найдено: 45");
     expect(container.querySelector('a[href="/ru/product/7"]')).not.toBeNull();
+    expect(container.querySelector(".storefront-product .storefront-add")).toHaveTextContent("В корзину");
     await act(async () => (container.querySelector('.ant-pagination-item-3') as HTMLElement).click());
     expect(push).toHaveBeenLastCalledWith("/ru/catalog?query=keys&section=1&priceFrom=0&priceTo=123.45&inStock=true&page=3");
     window.history.replaceState({}, "", "/ru/catalog?query=previous");
