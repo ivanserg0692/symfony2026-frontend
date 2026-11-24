@@ -3,6 +3,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { Refine, useList } from "@refinedev/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { dataProviders } from "../../../src/providers/data-provider";
+import { storefrontResources } from "@/providers/storefront-resources";
 import { API_URL } from "../../../src/lib/api-client";
 import { json, mockApi } from "./api-mock";
 
@@ -23,6 +24,7 @@ describe("Refine provider selection", () => {
     await act(async () => {
       root!.render(createElement(Refine, {
         dataProvider: dataProviders,
+        resources: storefrontResources,
         options: { disableTelemetry: true },
       }, createElement(Probe)));
     });
@@ -44,7 +46,6 @@ describe("Refine provider selection", () => {
     const fetchMock = mockApi(() => json(sections));
     const result = await mountList({
       resource: "catalog/sections",
-      dataProviderName: "catalog",
       pagination: { mode: "off" },
     });
 

@@ -38,7 +38,7 @@ function AddForUser({ id, name, stock, login }: AddToCartProps & { login: string
   const translate = useTranslate();
   const { cart } = useCartSession();
   const actions = useCartActions();
-  const item = cart.data?.data.items.find(({ catalogElementId }) => catalogElementId === id);
+  const item = cart.data?.data.find(({ catalogElementId }) => catalogElementId === id);
 
   return (
     <div className="storefront-add">

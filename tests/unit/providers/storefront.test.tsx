@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { StorefrontHome } from "../../../src/components/storefront/home";
 import { StorefrontLayout } from "../../../src/components/storefront/layout";
 import { dataProviders } from "../../../src/providers/data-provider";
+import { storefrontResources } from "@/providers/storefront-resources";
 import { i18nProvider } from "../../../src/providers/i18n-provider";
 import { AppThemeProvider } from "../../../src/providers/theme-provider";
 import { json } from "./api-mock";
@@ -49,7 +50,7 @@ describe("storefront home", () => {
     await act(async () => root.render(
       <AppThemeProvider>
         <Refine
-          dataProvider={dataProviders}
+          dataProvider={dataProviders} resources={storefrontResources}
           i18nProvider={i18nProvider}
           authProvider={{ check: async () => ({ authenticated: false }), login: async () => ({ success: false }), logout: async () => ({ success: true }), onError: async (error) => ({ error }) }}
           options={{ disableTelemetry: true, reactQuery: { clientConfig: { defaultOptions: { queries: { retry: false } } } } }}

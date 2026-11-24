@@ -6,6 +6,7 @@ import { Alert, Button, Card, Empty, Skeleton } from "antd";
 import Link from "next/link";
 import { useLocale } from "@/hooks/use-locale";
 import { getLocalizedPath } from "@/lib/i18n";
+import { catalogElements, catalogSections } from "@/providers/storefront-resources";
 import type { CatalogElement, CatalogSection } from "@/types/catalog";
 import { ProductCard } from "./catalog/product-card";
 
@@ -13,8 +14,7 @@ const SectionsPreview = () => {
   const translate = useTranslate();
   const locale = useLocale();
   const { result, query } = useList<CatalogSection>({
-    resource: "catalog/sections",
-    dataProviderName: "catalog",
+    resource: catalogSections.name,
     pagination: { mode: "off" },
   });
 
@@ -39,8 +39,7 @@ const SectionsPreview = () => {
 const ProductsPreview = () => {
   const translate = useTranslate();
   const { result, query } = useList<CatalogElement>({
-    resource: "catalog/elements",
-    dataProviderName: "catalog",
+    resource: catalogElements.name,
     pagination: { currentPage: 1, pageSize: 5 },
     filters: [{ field: "active", operator: "eq", value: true }],
   });

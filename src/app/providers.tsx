@@ -9,6 +9,7 @@ import type { PropsWithChildren } from "react";
 import { authProviderClient } from "@providers/auth-provider/auth-provider.client";
 import { dataProviders } from "@providers/data-provider";
 import { i18nProvider } from "@providers/i18n-provider";
+import { storefrontResources } from "@/providers/storefront-resources";
 import { AppThemeProvider } from "@providers/theme-provider";
 
 export const Providers = ({ children }: PropsWithChildren) => {
@@ -22,6 +23,7 @@ export const Providers = ({ children }: PropsWithChildren) => {
             authProvider={authProviderClient}
             i18nProvider={i18nProvider}
             resources={[
+              ...storefrontResources,
               {
                 name: "news",
                 list: "/:locale/news",

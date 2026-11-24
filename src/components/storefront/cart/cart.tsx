@@ -45,7 +45,7 @@ function CartContents({ login }: { login: string }) {
   const locale = useLocale();
   const { cart } = useCartSession();
   const actions = useCartActions();
-  const items = cart.data?.data.items ?? [];
+  const items = cart.data?.data ?? [];
   const details = useCartProducts(items);
   const products = details.data?.data.products ?? {};
   const estimate = cartEstimate(items, products);

@@ -10,6 +10,7 @@ import { CartProvider } from "@/components/storefront/cart/cart-provider";
 import { safeLoginReturn } from "@/lib/login-return";
 import { authProviderClient } from "@/providers/auth-provider/auth-provider.client";
 import { dataProviders } from "@/providers/data-provider";
+import { storefrontResources } from "@/providers/storefront-resources";
 import { i18nProvider } from "@/providers/i18n-provider";
 import { AppThemeProvider } from "@/providers/theme-provider";
 import type { CartItem } from "@/types/cart";
@@ -25,7 +26,7 @@ const position = (id: number, catalogElementId: number, quantity: number): CartI
 function TestApp({ children }: PropsWithChildren) {
   return (
     <AppThemeProvider>
-      <Refine authProvider={authProviderClient} dataProvider={dataProviders} i18nProvider={i18nProvider}
+      <Refine authProvider={authProviderClient} dataProvider={dataProviders} resources={storefrontResources} i18nProvider={i18nProvider}
         options={{ disableTelemetry: true }}>
         <CartProvider>{children}</CartProvider>
         <RefreshIdentity />
@@ -47,6 +48,7 @@ describe("storefront cart", () => {
   let itemUpdateStatus: number;
   let addStatus: number;
   let cartStatus: number;
+  let waitForCartResponse: Promise<void> | undefined;
   let requests: { path: string; method: string; body: unknown }[];
 
   beforeEach(() => {
@@ -60,6 +62,7 @@ describe("storefront cart", () => {
     items = [position(21, 7, 2), position(22, 404, 1)];
     itemUpdateStatus = addStatus = cartStatus = 200;
     requests = [];
+    waitForCartResponse = undefined;
     vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit) => {
       const path = new URL(url).pathname.replace("/api/v1", "");
       const method = init.method ?? "GET";
@@ -77,6 +80,7 @@ describe("storefront cart", () => {
       });
       if (path === "/catalog/elements/404") return json({}, 404);
       if (path === "/cart" && method === "GET") {
+        if (waitForCartResponse) await waitForCartResponse;
         return cartStatus === 200 ? json({ id: ownerId, items }) : json({}, cartStatus);
       }
       if (path === "/cart/items" && method === "POST") {
@@ -123,6 +127,8 @@ describe("storefront cart", () => {
   const decrease = (within: ParentNode) => within.querySelector<HTMLButtonElement>('[aria-label="Уменьшить количество: Клавиатура"]')!;
   const links = () => Array.from(container.querySelectorAll("a"), (anchor) => anchor.getAttribute("href"));
   const text = () => container.textContent ?? "";
+  const cartReads = () => requests.filter(({ path, method }) => path === "/cart" && method === "GET");
+  const productReads = () => requests.filter(({ path }) => path.startsWith("/catalog/elements/"));
   const waitFor = async (assertion: () => void) => {
     const deadline = Date.now() + 3000;
     while (true) {
@@ -166,17 +172,22 @@ describe("storefront cart", () => {
     await waitFor(() => expect(stepper(panel)).toHaveTextContent("2"));
     expect(panel.querySelector('a[href="/ru/cart"]')).toHaveTextContent("Перейти в корзину");
     expect(panel).toHaveTextContent("Товар №404");
+    expect(cartReads()).toHaveLength(1);
+    expect(productReads()).toHaveLength(2);
 
     await click(increase(product()));
     await waitFor(() => expect(stepper(panel)).toHaveTextContent("3"));
     expect(text()).toContain("370,35");
     expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 4");
+    expect(cartReads()).toHaveLength(2);
+    expect(productReads()).toHaveLength(2);
 
     itemUpdateStatus = 400;
     await click(decrease(panel));
     await waitFor(() => expect(panel).toHaveTextContent("Не удалось сохранить количество"));
     expect(stepper(product())).toHaveTextContent("3");
     expect(stepper(panel)).toHaveTextContent("3");
+    expect(cartReads()).toHaveLength(2);
 
     itemUpdateStatus = 200;
     await click(decrease(panel));
@@ -193,6 +204,7 @@ describe("storefront cart", () => {
     await click(panel.querySelector<HTMLButtonElement>('button[aria-label="Удалить: Клавиатура"]')!);
     await waitFor(() => expect(buttons("В корзину")[0]).toBeEnabled());
     expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 1");
+    expect(cartReads()).toHaveLength(5);
 
     await act(async () => panel.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
     expect(cartTrigger()).toHaveAttribute("aria-expanded", "false");
@@ -200,6 +212,7 @@ describe("storefront cart", () => {
   });
 
   it("adds a new product and replaces the add button with its quantity", async () => {
+    window.history.replaceState({}, "", "/ru/product/7");
     items = [];
     await mount(<><CartMenu /><AddToCart id={7} name="Клавиатура" stock={5} /></>);
     const product = () => container.querySelector<HTMLElement>(".storefront-add")!;
@@ -209,6 +222,7 @@ describe("storefront cart", () => {
     expect(decrease(product())).toBeDisabled();
     expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 1");
     expect(requests).toContainEqual({ path: "/cart/items", method: "POST", body: { productId: 7, quantity: 1 } });
+    expect(cartReads()).toHaveLength(2);
   });
 
   it("restores saved quantity on failure, saves an absolute value, removes and clears with 204", async () => {
@@ -236,6 +250,7 @@ describe("storefront cart", () => {
     await click(buttons("Очистить корзину").at(-1)!);
     await waitFor(() => expect(text()).toContain("Корзина пуста"));
     expect(requests).toContainEqual({ path: "/cart", method: "DELETE", body: null });
+    expect(cartReads()).toHaveLength(4);
   });
 
   it.each([404, 409, 503])("reports an unsuccessful add (%s) without changing the cart", async (status) => {
@@ -251,13 +266,20 @@ describe("storefront cart", () => {
   });
 
   it("drops previous owner data on identity change and shows login on an expired session", async () => {
-    await mount(<StorefrontCart />);
+    await mount(<><CartMenu /><StorefrontCart /></>);
     await waitFor(() => expect(text()).toContain("Клавиатура"));
+    expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 3");
+
     ownerId = 8;
     items = [];
+    let finishCartRequest!: () => void;
+    waitForCartResponse = new Promise((resolve) => { finishCartRequest = resolve; });
     await click(buttons("Refresh identity")[0]);
-    await waitFor(() => expect(text()).toContain("Корзина пуста"));
+    await waitFor(() => expect(cartReads()).toHaveLength(2));
+    expect(cartTrigger()).toHaveAccessibleName("Корзина");
     expect(text()).not.toContain("Клавиатура");
+    await act(async () => { finishCartRequest(); });
+    await waitFor(() => expect(text()).toContain("Корзина пуста"));
 
     // Expire the cart request between the identity check and data loading.
     ownerId = 9;

@@ -11,7 +11,7 @@ describe("catalog browse contracts", () => {
     const parsed = readCatalogQuery(new URLSearchParams("query=+Keyboard+&section=1&priceFrom=0&priceTo=123.45&inStock=true&page=3"));
     expect(parsed.valid).toBe(true);
     expect(readCatalogQuery(new URLSearchParams(catalogQueryString(parsed.value).slice(1)))).toEqual(parsed);
-    expect(catalogFilters(parsed.value, sections)).toEqual([
+    expect(catalogFilters(parsed.value, [1, 2, 3])).toEqual([
       { field: "active", operator: "eq", value: true },
       { field: "query", operator: "contains", value: "Keyboard" },
       { field: "sectionIds", operator: "in", value: [1, 2, 3] },
@@ -21,6 +21,16 @@ describe("catalog browse contracts", () => {
     ]);
     expect(priceToMinorUnits("0.29")).toBe(29);
     expect(priceToMinorUnits("1.1")).toBe(110);
+  });
+
+  it("assembles filters without section IDs when no section is selected", () => {
+    const { value } = readCatalogQuery(new URLSearchParams("query=Keyboard&inStock=true"));
+
+    expect(catalogFilters(value)).toEqual([
+      { field: "active", operator: "eq", value: true },
+      { field: "query", operator: "contains", value: "Keyboard" },
+      { field: "inStock", operator: "eq", value: true },
+    ]);
   });
 
   it.each(["page=0", "page=1.2", "page=9007199254740992", "section=x", "inStock=yes", "priceFrom=-1", "priceTo=1.234", "priceFrom=2&priceTo=1", "priceFrom=1e3", "priceTo=90071992547409.92", "query=x&query=y"])("rejects invalid URL %s", (query) => {

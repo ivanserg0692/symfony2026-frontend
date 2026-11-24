@@ -7,12 +7,16 @@ import { json, mockApi } from "./api-mock";
 describe("cartDataProvider API contracts", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("reads and clears the cart through custom, preserving HTTP 204", async () => {
+  it("lists cart positions via GET /cart and clears the cart with a custom HTTP 204", async () => {
     const cart: Cart = { id: null, status: null, createdAt: null, updatedAt: null, items: [] };
-    const fetchMock = mockApi(() => json(cart));
-    await expect(cartDataProvider.custom!<Cart>({ url: "/cart", method: "get" }))
-      .resolves.toEqual({ data: cart });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const item: CartItem = { id: 99, catalogElementId: 10, quantity: 3, sort: 1, createdAt: "now", updatedAt: "now" };
+    const fetchMock = mockApi(() => json({ ...cart, items: [item] }));
+    await expect(cartDataProvider.getList<CartItem>({ resource: "cart/items" }))
+      .resolves.toEqual({ data: [item], total: 1 });
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith(`${API_URL}/cart`, expect.anything());
+    mockApi(() => json(cart));
+    await expect(cartDataProvider.getList<CartItem>({ resource: "cart/items" }))
+      .resolves.toEqual({ data: [], total: 0 });
     mockApi(() => new Response(null, { status: 204 }));
     await expect(cartDataProvider.custom!<void>({ url: "/cart", method: "delete" })).resolves.toEqual({ data: undefined });
   });

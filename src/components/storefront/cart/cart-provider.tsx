@@ -1,27 +1,29 @@
 "use client";
 
-import { useCustom, useGetIdentity } from "@refinedev/core";
+import { useGetIdentity, useList } from "@refinedev/core";
 import { createContext, useContext, useRef, useState, type PropsWithChildren } from "react";
-import type { Cart } from "@/types/cart";
+import { cartItems } from "@/providers/storefront-resources";
+import type { CartItem } from "@/types/cart";
 
 function useCartState() {
   const identity = useGetIdentity<{ id?: number } | null>({
     queryOptions: { refetchOnMount: "always" },
   });
   const ownerId = identity.data?.id;
-  const cart = useCustom<Pick<Cart, "items">>({
-    dataProviderName: "cart",
-    url: "/cart",
-    method: "get",
+  const { query: cart } = useList<CartItem>({
+    resource: cartItems.name,
+    pagination: { mode: "off" },
     meta: { ownerId },
     queryOptions: {
       enabled: !!ownerId && !identity.isFetching,
+      // Refine otherwise displays the previous query's data while the new owner loads.
+      placeholderData: undefined,
       gcTime: 0,
       retry: false,
       refetchOnWindowFocus: false,
     },
     errorNotification: false,
-  }).query;
+  });
   const pending = useRef(false);
   const [busy, setBusy] = useState(false);
 

@@ -1,28 +1,30 @@
 "use client";
 
-import { useCustom, useDataProvider, useInvalidate, useOnError } from "@refinedev/core";
+import { useCreate, useCustom, useCustomMutation, useDataProvider, useDelete, useInvalidate, useUpdate } from "@refinedev/core";
 import { useState } from "react";
 import { ApiError } from "@/lib/api-client";
+import { cartItems, catalogElements } from "@/providers/storefront-resources";
 import type { AddCartItem, CartItem, UpdateCartItem } from "@/types/cart";
 import type { CatalogElementDetail } from "@/types/catalog";
 
 import { useCartSession } from "./cart-provider";
 
 export function useCartProducts(items: CartItem[]) {
-  const catalog = useDataProvider()("catalog");
+  const catalog = useDataProvider()(catalogElements.meta.dataProviderName);
   const ids = Array.from(new Set(items.map((item) => item.catalogElementId))).sort((left, right) => left - right);
 
   return useCustom<{ products: Record<number, CatalogElementDetail>; hasLookupError: boolean }>({
-    dataProviderName: "catalog",
-    url: "/catalog/elements",
+    dataProviderName: catalogElements.meta.dataProviderName,
+    url: `/${catalogElements.name}`,
     method: "get",
     meta: { ids },
     queryOptions: {
       gcTime: 0,
+      refetchOnMount: false,
       enabled: ids.length > 0,
       queryFn: async () => {
         const results = await Promise.allSettled(ids.map((id) =>
-          catalog.getOne<CatalogElementDetail>({ resource: "catalog/elements", id }),
+          catalog.getOne<CatalogElementDetail>({ resource: catalogElements.name, id }),
         ));
         const products: Record<number, CatalogElementDetail> = {};
         let hasLookupError = false;
@@ -41,9 +43,11 @@ export function useCartProducts(items: CartItem[]) {
 }
 
 export function useCartActions() {
-  const cart = useDataProvider()("cart");
+  const { mutateAsync: createItem } = useCreate<CartItem, ApiError, AddCartItem>();
+  const { mutateAsync: updateItem } = useUpdate<CartItem, ApiError, UpdateCartItem>();
+  const { mutateAsync: deleteItem } = useDelete<CartItem, ApiError>();
+  const { mutateAsync: clearCart } = useCustomMutation<CartItem, ApiError, undefined>();
   const invalidate = useInvalidate();
-  const { mutate: handleAuthError } = useOnError();
   const { busy, startMutation, finishMutation } = useCartSession();
   const [error, setError] = useState<string>();
 
@@ -54,13 +58,12 @@ export function useCartActions() {
     try {
       await action();
       await invalidate({
-        dataProviderName: "cart",
-        invalidates: ["all"],
+        resource: cartItems.name,
+        invalidates: ["list"],
         invalidationOptions: { cancelRefetch: true },
       });
       return true;
     } catch (failure) {
-      if (failure instanceof ApiError && failure.statusCode === 401) handleAuthError(failure);
       setError(cartError(failure));
       return false;
     } finally {
@@ -68,18 +71,26 @@ export function useCartActions() {
     }
   }
 
-  const resource = "cart/items";
+  // Refresh the list once, after either a CRUD operation or clearing the cart.
+  const notifications = { successNotification: false, errorNotification: false } as const;
+  const itemMutation = { resource: cartItems.name, invalidates: [], ...notifications };
   return {
     busy,
     error,
-    add: (productId: number) => run(() => cart.create<CartItem, AddCartItem>({
-      resource, variables: { productId, quantity: 1 },
+    add: (productId: number) => run(() => createItem({
+      ...itemMutation, values: { productId, quantity: 1 },
     })),
-    update: (id: number, quantity: number) => run(() => cart.update<CartItem, UpdateCartItem>({
-      resource, id, variables: { quantity },
+    update: (id: number, quantity: number) => run(() => updateItem({
+      ...itemMutation, id, values: { quantity },
     })),
-    remove: (id: number) => run(() => cart.deleteOne({ resource, id })),
-    clear: () => run(() => cart.custom!({ url: "/cart", method: "delete" })),
+    remove: (id: number) => run(() => deleteItem({ ...itemMutation, id })),
+    clear: () => run(() => clearCart({
+      ...notifications,
+      dataProviderName: cartItems.meta.dataProviderName,
+      url: "/cart",
+      method: "delete",
+      values: undefined,
+    })),
   };
 }
 

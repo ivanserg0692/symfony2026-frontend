@@ -83,10 +83,13 @@ export const sectionAncestors = (sections: CatalogSection[], id: number): Catalo
   return ancestors;
 };
 
-export const catalogFilters = (value: CatalogQuery, sections: CatalogSection[]): CrudFilters => {
+export const catalogFilters = (
+  value: Omit<CatalogQuery, "section" | "page">,
+  sectionIds?: number[],
+): CrudFilters => {
   const filters: CrudFilters = [{ field: "active", operator: "eq", value: true }];
   if (value.query) filters.push({ field: "query", operator: "contains", value: value.query });
-  if (value.section !== null) filters.push({ field: "sectionIds", operator: "in", value: descendantSectionIds(sections, value.section) });
+  if (sectionIds !== undefined) filters.push({ field: "sectionIds", operator: "in", value: sectionIds });
   if (value.inStock) filters.push({ field: "inStock", operator: "eq", value: true });
   for (const field of ["priceFrom", "priceTo"] as const) {
     if (value[field] !== "") filters.push({ field, operator: "eq", value: priceToMinorUnits(value[field]) });

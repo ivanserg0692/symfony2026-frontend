@@ -7,6 +7,7 @@ import { CartProvider } from "../../../src/components/storefront/cart/cart-provi
 import { StorefrontProduct } from "../../../src/components/storefront/catalog/product";
 import { StorefrontLayout } from "../../../src/components/storefront/layout";
 import { dataProviders } from "../../../src/providers/data-provider";
+import { catalogElements, catalogSections, storefrontResources } from "@/providers/storefront-resources";
 import { i18nProvider } from "../../../src/providers/i18n-provider";
 import { AppThemeProvider } from "../../../src/providers/theme-provider";
 import { json } from "./api-mock";
@@ -18,6 +19,11 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(window.location.search),
   useRouter: () => ({ push }),
 }));
+
+const catalogResources = {
+  resource: catalogElements.name,
+  sectionsResource: catalogSections.name,
+};
 
 const sections = [
   { id: 1, name: "Техника", parentId: null, active: true },
@@ -50,7 +56,7 @@ describe("catalog pages with real providers", () => {
   afterEach(async () => { await act(async () => root.unmount()); container.remove(); localStorage.clear(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
   const mount = async (children: ReactNode) => {
-    await act(async () => root.render(<AppThemeProvider><Refine dataProvider={dataProviders} i18nProvider={i18nProvider}
+    await act(async () => root.render(<AppThemeProvider><Refine dataProvider={dataProviders} resources={storefrontResources} i18nProvider={i18nProvider}
       options={{ disableTelemetry: true, reactQuery: { clientConfig: { defaultOptions: { queries: { retry: false } } } } }}><CartProvider>{children}</CartProvider></Refine></AppThemeProvider>));
     await act(async () => { await vi.waitFor(() => expect(container.querySelector(".ant-skeleton")).toBeNull()); });
   };
@@ -58,7 +64,7 @@ describe("catalog pages with real providers", () => {
 
   it("restores URL filters, descendants and total pagination; back/reload uses the URL", async () => {
     window.history.replaceState({}, "", "/ru/catalog?query=keys&section=1&priceFrom=0&priceTo=123.45&inStock=true&page=2");
-    await mount(<StorefrontCatalog />);
+    await mount(<StorefrontCatalog {...catalogResources} />);
     const params = elementsRequests()[0].searchParams;
     expect(params.getAll("sectionIds[]")).toEqual(["1", "2"]);
     expect(params.get("priceTo")).toBe("12345");
@@ -70,7 +76,7 @@ describe("catalog pages with real providers", () => {
     await act(async () => (container.querySelector('.ant-pagination-item-3') as HTMLElement).click());
     expect(push).toHaveBeenLastCalledWith("/ru/catalog?query=keys&section=1&priceFrom=0&priceTo=123.45&inStock=true&page=3");
     window.history.replaceState({}, "", "/ru/catalog?query=previous");
-    await mount(<StorefrontCatalog />);
+    await mount(<StorefrontCatalog {...catalogResources} />);
     expect(elementsRequests().at(-1)!.searchParams.get("query")).toBe("previous");
     expect(elementsRequests().at(-1)!.searchParams.get("page")).toBe("1");
     expect(elementsRequests().at(-1)!.searchParams.has("sectionIds[]")).toBe(false);
@@ -78,16 +84,16 @@ describe("catalog pages with real providers", () => {
 
   it("blocks invalid filters and unknown sections instead of querying a different catalog", async () => {
     window.history.replaceState({}, "", "/ru/catalog?priceFrom=20&priceTo=10");
-    await mount(<StorefrontCatalog />);
+    await mount(<StorefrontCatalog {...catalogResources} />);
     expect(container.textContent).toContain("Некорректные параметры"); expect(elementsRequests()).toHaveLength(0);
     window.history.replaceState({}, "", "/ru/catalog?section=999");
-    await mount(<StorefrontCatalog />);
+    await mount(<StorefrontCatalog {...catalogResources} />);
     expect(container.textContent).toContain("Раздел не найден"); expect(elementsRequests()).toHaveLength(0);
   });
 
   it("loads category detail and its children through catalog endpoints", async () => {
     window.history.replaceState({}, "", "/en/category/1");
-    await mount(<StorefrontCatalog categoryId={1} />);
+    await mount(<StorefrontCatalog {...catalogResources} categoryId={1} />);
     expect(container.querySelector("h1")?.textContent).toBe("Техника");
     expect(container.querySelector('a[href="/en/category/2"]')).not.toBeNull();
     expect(elementsRequests()[0].searchParams.getAll("sectionIds[]")).toEqual(["1", "2"]);
@@ -97,7 +103,7 @@ describe("catalog pages with real providers", () => {
   it("shows API errors, retries, then renders an empty result", async () => {
     const handler = fetchMock.getMockImplementation()!;
     fetchMock.mockImplementation(async (url: string) => new URL(url).pathname.endsWith("/catalog/elements") ? json({ detail: "Unavailable" }, 503) : handler(url));
-    await mount(<StorefrontCatalog />);
+    await mount(<StorefrontCatalog {...catalogResources} />);
     expect(container.textContent).toContain("Не удалось загрузить товары.");
     fetchMock.mockImplementation(async (url: string) => new URL(url).pathname.endsWith("/catalog/elements") ? json({ items: [], pagination: { total: 0 } }) : handler(url));
     await act(async () => Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Повторить")!.click());
@@ -137,7 +143,7 @@ describe("catalog pages with real providers", () => {
   });
   it("validates price drafts before navigation and resets page on applying filters", async () => {
     window.history.replaceState({}, "", "/ru/catalog?page=3");
-    await mount(<StorefrontCatalog />);
+    await mount(<StorefrontCatalog {...catalogResources} />);
     const change = async (id: string, value: string) => {
       const input = container.querySelector(`#${id}`) as HTMLInputElement;
       await act(async () => {
@@ -163,7 +169,7 @@ describe("catalog pages with real providers", () => {
     const getComputedStyle = window.getComputedStyle.bind(window);
     vi.spyOn(window, "getComputedStyle").mockImplementation((element) => getComputedStyle(element));
     window.history.replaceState({}, "", "/ru/catalog?priceFrom=12.34");
-    await mount(<StorefrontCatalog />);
+    await mount(<StorefrontCatalog {...catalogResources} />);
     await act(async () => (container.querySelector(".storefront-catalog__filter-button") as HTMLButtonElement).click());
     expect(document.querySelector('[role="dialog"]')).not.toBeNull();
     expect((document.querySelector("#catalog-mobile_priceFrom") as HTMLInputElement).value).toBe("12.34");
@@ -172,7 +178,7 @@ describe("catalog pages with real providers", () => {
   it("does not drop category constraints when the sections service fails", async () => {
     window.history.replaceState({}, "", "/ru/catalog?section=1");
     fetchMock.mockImplementation(async () => json({ detail: "Unavailable" }, 503));
-    await mount(<StorefrontCatalog />);
+    await mount(<StorefrontCatalog {...catalogResources} />);
     expect(container.textContent).toContain("Не удалось загрузить разделы каталога");
     expect(elementsRequests()).toHaveLength(0);
   });
@@ -181,7 +187,7 @@ describe("catalog pages with real providers", () => {
     window.history.replaceState({}, "", "/ru/category/999");
     const handler = fetchMock.getMockImplementation()!;
     fetchMock.mockImplementation(async (url: string) => String(url).endsWith("/catalog/sections/999") ? json({ message: "Missing" }, 404) : handler(url));
-    await mount(<StorefrontCatalog categoryId={999} />);
+    await mount(<StorefrontCatalog {...catalogResources} categoryId={999} />);
     expect(container.textContent).toContain("Раздел не найден");
     expect(elementsRequests()).toHaveLength(0);
   });

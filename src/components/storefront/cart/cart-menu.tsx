@@ -23,7 +23,7 @@ export function CartMenu() {
   const login = loginWithReturn(locale, cartPath);
   const signedIn = !!ownerId && cart.error?.statusCode !== 401;
   const count = !checkingIdentity && signedIn
-    ? cart.data?.data.items.reduce((total, item) => total + item.quantity, 0) ?? 0
+    ? cart.data?.data.reduce((total, item) => total + item.quantity, 0) ?? 0
     : 0;
 
   return (
@@ -70,7 +70,7 @@ function CartMenuItems({ login, close }: { login: string; close: () => void }) {
   const locale = useLocale();
   const { cart } = useCartSession();
   const actions = useCartActions();
-  const items = cart.data?.data.items ?? [];
+  const items = cart.data?.data ?? [];
   const details = useCartProducts(items);
   const products = details.data?.data.products ?? {};
 

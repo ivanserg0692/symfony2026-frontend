@@ -5,6 +5,7 @@ import { Alert, Breadcrumb, Button, Result, Skeleton } from "antd";
 import Link from "next/link";
 import { useLocale } from "@/hooks/use-locale";
 import { getLocalizedPath } from "@/lib/i18n";
+import { catalogElements } from "@/providers/storefront-resources";
 import type { CatalogElementDetail } from "@/types/catalog";
 import { AddToCart } from "../cart/add-to-cart";
 import { CatalogPicture } from "../catalog-picture";
@@ -13,7 +14,7 @@ import { ProductPrice } from "./product-card";
 export const StorefrontProduct = ({ id }: { id: number }) => {
   const translate = useTranslate();
   const locale = useLocale();
-  const { result: product, query } = useOne<CatalogElementDetail>({ resource: "catalog/elements", id, dataProviderName: "catalog", queryOptions: { retry: false } });
+  const { result: product, query } = useOne<CatalogElementDetail>({ resource: catalogElements.name, id, queryOptions: { retry: false } });
   const catalogPath = getLocalizedPath(locale, "/catalog");
   if (query.isLoading) return <Skeleton active />;
   if (query.isError) return query.error?.statusCode === 404
