@@ -19,7 +19,7 @@ import {
   Tooltip,
   Typography,
 } from "antd";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ComponentRef, type RefObject } from "react";
 import { apiFetch, buildApiUrl } from "@/lib/api-client";
 
 type NotificationItem = {
@@ -36,6 +36,7 @@ type ListResponse<TData> = {
   };
 };
 
+const popupMaxWidth = 384;
 const notificationLimit = 10;
 const notificationPollIntervalMs = 30_000;
 
@@ -50,16 +51,67 @@ const formatDate = (value?: string | null) => {
   }).format(new Date(value));
 };
 
-export const Notifications = () => {
+export const Notifications = ({
+  placement = "bottomRight",
+  popupBoundaryRef,
+}: {
+  placement?: "bottomLeft" | "bottomRight";
+  popupBoundaryRef?: RefObject<HTMLElement | null>;
+}) => {
   const auth = useIsAuthenticated();
   const translate = useTranslate();
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const popupRef = useRef<ComponentRef<typeof Popover>>(null);
+  const [popupPosition, setPopupPosition] = useState<{ width: number; offsetX: number }>();
   const [loading, setLoading] = useState(false);
   const [mutatingId, setMutatingId] = useState<number | null>(null);
   const [clearing, setClearing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isAuthenticated = auth.data?.authenticated === true;
+
+  useLayoutEffect(() => {
+    const boundary = popupBoundaryRef?.current;
+    const trigger = triggerRef.current;
+    if (!open || !boundary || !trigger) {
+      return;
+    }
+
+    const updatePopupPosition = () => {
+      const bounds = boundary.getBoundingClientRect();
+      const { paddingLeft, paddingRight } = getComputedStyle(boundary);
+      const left = bounds.left + parseFloat(paddingLeft);
+      const right = bounds.right - parseFloat(paddingRight);
+      const width = Math.min(popupMaxWidth, right - left);
+
+      const anchor = trigger.getBoundingClientRect();
+      const preferredLeft = placement === "bottomLeft" ? anchor.left : anchor.right - width;
+      const popupLeft = Math.min(Math.max(preferredLeft, left), right - width);
+      setPopupPosition({ width, offsetX: popupLeft - preferredLeft });
+    };
+
+    updatePopupPosition();
+    const observer = new ResizeObserver(updatePopupPosition);
+    observer.observe(boundary);
+    observer.observe(trigger);
+    const navigation = trigger.closest("nav");
+    if (navigation) {
+      observer.observe(navigation);
+    }
+    window.addEventListener("resize", updatePopupPosition);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updatePopupPosition);
+    };
+  }, [open, placement, popupBoundaryRef]);
+
+  useLayoutEffect(() => {
+    if (open && popupPosition) {
+      popupRef.current?.forceAlign();
+    }
+  }, [open, popupPosition]);
 
   const unreadCount = useMemo(
     () => items.filter((item) => !item.readAt).length,
@@ -192,9 +244,16 @@ export const Notifications = () => {
 
   return (
     <Popover
+      ref={popupRef}
       arrow={false}
       rootClassName="notifications-popup"
-      align={{ overflow: { shiftX: true, adjustY: true } }}
+      align={{
+        targetOffset: [-(popupPosition?.offsetX ?? 0), 0],
+        overflow: { shiftX: true, adjustY: true },
+      }}
+      styles={{
+        root: { width: popupPosition?.width ?? `min(${popupMaxWidth}px, calc(100% - 32px))` },
+      }}
       content={
         <div className="notifications-popover">
           <div className="notifications-popover__header">
@@ -310,13 +369,14 @@ export const Notifications = () => {
         }
       }}
       open={open}
-      placement="bottomRight"
+      placement={placement}
       trigger="click"
     >
       <Badge count={unreadCount} overflowCount={99} size="small">
         <Button
           aria-label={translate("notifications.title")}
           className="notifications-trigger"
+          ref={triggerRef}
           icon={<BellOutlined />}
           shape="circle"
           type="text"

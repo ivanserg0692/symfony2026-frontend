@@ -175,10 +175,6 @@
   }
 }
 
-.notifications-popup.ant-popover {
-  width: min(384px, calc(100% - 32px));
-}
-
 :root {
   --app-bg: #F7F7FA;
   --app-border: #E4E4E7;

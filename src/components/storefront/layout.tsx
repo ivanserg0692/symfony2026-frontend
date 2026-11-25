@@ -5,7 +5,7 @@ import { useIsAuthenticated, useTranslate } from "@refinedev/core";
 import { Button, Dropdown, Input } from "antd";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, type PropsWithChildren } from "react";
+import { useEffect, useRef, useState, type PropsWithChildren } from "react";
 import { Notifications } from "@/components/notifications";
 import { useLocale } from "@/hooks/use-locale";
 import { getLocalizedPath, locales, localizeRoute } from "@/lib/i18n";
@@ -25,6 +25,8 @@ const StorefrontShell = ({ children }: PropsWithChildren) => {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("query") ?? "";
   const [search, setSearch] = useState(searchQuery);
+  const [hasCompactActionsRow, setHasCompactActionsRow] = useState(false);
+  const headerInnerRef = useRef<HTMLDivElement>(null);
   useEffect(() => setSearch(searchQuery), [searchQuery, pathname]);
   const auth = useIsAuthenticated();
   const home = getLocalizedPath(locale);
@@ -33,11 +35,20 @@ const StorefrontShell = ({ children }: PropsWithChildren) => {
     document.documentElement.lang = locale;
   }, [locale]);
 
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 420px)");
+    const updateCompactActionsRow = () => setHasCompactActionsRow(media.matches);
+
+    updateCompactActionsRow();
+    media.addEventListener("change", updateCompactActionsRow);
+    return () => media.removeEventListener("change", updateCompactActionsRow);
+  }, []);
+
   return (
     <div className="storefront">
       <a className="storefront__skip" href="#main-content">{translate("storefront.skip")}</a>
       <header className="storefront__header">
-        <div className="storefront__header-inner">
+        <div className="storefront__header-inner" ref={headerInnerRef}>
           <Link className="storefront__brand" href={home} aria-label={translate("storefront.home")}>
             {translate("storefront.brand")}
           </Link>
@@ -57,7 +68,10 @@ const StorefrontShell = ({ children }: PropsWithChildren) => {
           <nav className="storefront__actions" aria-label={translate("storefront.navigation")}>
             {!auth.isLoading && (auth.data?.authenticated ? (
               <>
-                <Notifications />
+                <Notifications
+                  placement={hasCompactActionsRow ? "bottomLeft" : "bottomRight"}
+                  popupBoundaryRef={headerInnerRef}
+                />
                 <Dropdown
                   trigger={["click"]}
                   menu={{ items: [
