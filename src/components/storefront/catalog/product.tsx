@@ -54,7 +54,7 @@ export const StorefrontProduct = ({ id }: { id: number }) => {
           { field: "sectionIds", operator: "in", value: sections.map((section) => section.id) },
           { field: "inStock", operator: "eq", value: true },
         ]}
-        limit={6}
+        limit={10}
         pageSize={CATALOG_PAGE_SIZE}
         excludeProductId={product.id}
       />

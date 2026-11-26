@@ -137,6 +137,7 @@ describe("storefront cart", () => {
   const cartTrigger = () => container.querySelector<HTMLButtonElement>(".storefront-cart-menu button")!;
   const stepper = (within: ParentNode, name = "Клавиатура") =>
     within.querySelector<HTMLElement>(`[aria-label="Количество: ${name}"]`)!;
+  const quantityInput = (within: ParentNode) => stepper(within).querySelector<HTMLInputElement>("input")!;
   const increase = (within: ParentNode) => within.querySelector<HTMLButtonElement>('[aria-label="Увеличить количество: Клавиатура"]')!;
   const decrease = (within: ParentNode) => within.querySelector<HTMLButtonElement>('[aria-label="Уменьшить количество: Клавиатура"]')!;
   const links = () => Array.from(container.querySelectorAll("a"), (anchor) => anchor.getAttribute("href"));
@@ -177,21 +178,21 @@ describe("storefront cart", () => {
   it("shows the saved quantity and synchronizes edits from the product, panel and full cart", async () => {
     await mount(<><CartMenu /><StorefrontCart /><AddToCart id={7} name="Клавиатура" stock={5} /></>);
     const product = () => container.querySelector<HTMLElement>(".storefront-add")!;
-    await waitFor(() => expect(stepper(product())).toHaveTextContent("2"));
+    await waitFor(() => expect(quantityInput(product())).toHaveValue("2"));
     expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 3");
     expect(buttons("В корзину")).toHaveLength(0);
 
     await act(async () => cartTrigger().dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
     await waitFor(() => expect(cartTrigger()).toHaveAttribute("aria-expanded", "true"));
     const panel = container.querySelector<HTMLElement>(".storefront-cart-menu__panel")!;
-    await waitFor(() => expect(stepper(panel)).toHaveTextContent("2"));
+    await waitFor(() => expect(quantityInput(panel)).toHaveValue("2"));
     expect(panel.querySelector('a[href="/ru/cart"]')).toHaveTextContent("Перейти в корзину");
     expect(panel).toHaveTextContent("Товар №404");
     expect(cartReads()).toHaveLength(1);
     expect(productReads()).toHaveLength(2);
 
     await click(increase(product()));
-    await waitFor(() => expect(stepper(panel)).toHaveTextContent("3"));
+    await waitFor(() => expect(quantityInput(panel)).toHaveValue("3"));
     expect(text()).toContain("370,35");
     expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 4");
     expect(cartReads()).toHaveLength(2);
@@ -200,20 +201,20 @@ describe("storefront cart", () => {
     itemUpdateStatus = 400;
     await click(decrease(panel));
     await waitFor(() => expect(panel).toHaveTextContent("Не удалось сохранить количество"));
-    expect(stepper(product())).toHaveTextContent("3");
-    expect(stepper(panel)).toHaveTextContent("3");
+    expect(quantityInput(product())).toHaveValue("3");
+    expect(quantityInput(panel)).toHaveValue("3");
     expect(cartReads()).toHaveLength(2);
 
     itemUpdateStatus = 200;
     await click(decrease(panel));
-    await waitFor(() => expect(stepper(product())).toHaveTextContent("2"));
+    await waitFor(() => expect(quantityInput(product())).toHaveValue("2"));
     expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 3");
 
     const input = container.querySelector<HTMLInputElement>("#cart-quantity-21")!;
     await change(input, "4");
     await click(buttons("Сохранить")[0]);
-    await waitFor(() => expect(stepper(panel)).toHaveTextContent("4"));
-    expect(stepper(product())).toHaveTextContent("4");
+    await waitFor(() => expect(quantityInput(panel)).toHaveValue("4"));
+    expect(quantityInput(product())).toHaveValue("4");
     expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 5");
 
     await click(panel.querySelector<HTMLButtonElement>('button[aria-label="Удалить: Клавиатура"]')!);
@@ -226,6 +227,46 @@ describe("storefront cart", () => {
     expect(document.activeElement).toBe(cartTrigger());
   });
 
+  it("saves a manually entered quantity once and restores the saved value after invalid input or failure", async () => {
+    await mount(<CartMenu />);
+    await click(cartTrigger());
+    const panel = container.querySelector<HTMLElement>(".storefront-cart-menu__panel")!;
+    await waitFor(() => expect(quantityInput(panel)).toBeEnabled());
+    const input = quantityInput(panel);
+    const updates = () => requests.filter(({ method }) => method === "PATCH");
+
+    await act(async () => input.focus());
+    await change(input, "5");
+    await act(async () => input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
+    await waitFor(() => expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 6"));
+    expect(updates()).toEqual([{ path: "/cart/items/21", method: "PATCH", body: { quantity: 5 } }]);
+    expect(input).toHaveValue("5");
+
+    for (const invalid of ["", "0", "6", "2.5"]) {
+      await act(async () => input.focus());
+      await change(input, invalid);
+      await act(async () => input.blur());
+      expect(input).toHaveValue("5");
+    }
+    expect(updates()).toHaveLength(1);
+
+    itemUpdateStatus = 409;
+    await act(async () => input.focus());
+    await change(input, "3");
+    await act(async () => input.blur());
+    await waitFor(() => expect(panel).toHaveTextContent("Недостаточно товара"));
+    expect(updates()).toHaveLength(2);
+    expect(input).toHaveValue("5");
+
+    itemUpdateStatus = 200;
+    await act(async () => input.focus());
+    await change(input, "4");
+    await act(async () => input.blur());
+    await waitFor(() => expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 5"));
+    expect(updates()).toHaveLength(3);
+    expect(input).toHaveValue("4");
+  });
+
   it("adds a new product and replaces the add button with its quantity", async () => {
     window.history.replaceState({}, "", "/ru/product/7");
     items = [];
@@ -233,7 +274,7 @@ describe("storefront cart", () => {
     const product = () => container.querySelector<HTMLElement>(".storefront-add")!;
     await waitFor(() => expect(buttons("В корзину")[0]).toBeEnabled());
     await click(buttons("В корзину")[0]);
-    await waitFor(() => expect(stepper(product())).toHaveTextContent("1"));
+    await waitFor(() => expect(quantityInput(product())).toHaveValue("1"));
     expect(decrease(product())).toBeDisabled();
     expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 1");
     expect(requests).toContainEqual({ path: "/cart/items", method: "POST", body: { productId: 7, quantity: 1 } });
@@ -249,13 +290,22 @@ describe("storefront cart", () => {
     await waitFor(() => expect(buttons("В корзину")[0]).toBeEnabled());
     expect(cartReads()).toHaveLength(1);
     await click(buttons("В корзину")[0]);
-    await waitFor(() => expect(stepper(card)).toHaveTextContent("1"));
+    await waitFor(() => expect(quantityInput(card)).toHaveValue("1"));
     expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 1");
 
     await click(increase(card));
-    await waitFor(() => expect(stepper(card)).toHaveTextContent("2"));
+    await waitFor(() => expect(quantityInput(card)).toHaveValue("2"));
     expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 2");
     expect(cartReads()).toHaveLength(3);
+
+    const input = quantityInput(card);
+    await act(async () => input.focus());
+    await change(input, "5");
+    await act(async () => input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
+    await waitFor(() => expect(cartTrigger()).toHaveAccessibleName("Корзина, количество товаров: 5"));
+    expect(input).toHaveValue("5");
+    expect(increase(card)).toBeDisabled();
+    expect(requests).toContainEqual({ path: "/cart/items/21", method: "PATCH", body: { quantity: 5 } });
   });
 
   it("restores saved quantity on failure, saves an absolute value, removes and clears with 204", async () => {

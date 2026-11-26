@@ -363,13 +363,19 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  max-width: 100%;
+  min-width: 0;
 }
-.storefront-cart-stepper > span {
-  min-width: 3ch;
+.storefront-cart-stepper .ant-btn { min-width: 44px; min-height: 44px; }
+.storefront-cart-stepper .storefront-cart-stepper__input {
+  flex: 0 1 52px;
+  width: 52px;
+  min-width: 0;
+  min-height: 44px;
+  padding-inline: 4px;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
-.storefront-cart-stepper .ant-btn { min-width: 44px; min-height: 44px; }
 .storefront-cart-menu .ant-badge { color: inherit; }
 .storefront-cart-menu .ant-badge .anticon { font-size: 16px; }
 .storefront-cart-menu__panel {
