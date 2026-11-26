@@ -114,15 +114,56 @@ describe("catalog pages with real providers", () => {
     await act(async () => { await vi.waitFor(() => expect(container.textContent).toContain("По вашему запросу ничего не найдено")); });
   });
 
-  it("renders product price, single image fallback and categories without purchase requests", async () => {
+  it("shows product details and up to six related products from one catalog request", async () => {
+    window.history.replaceState({}, "", "/ru/product/7");
+    const handler = fetchMock.getMockImplementation()!;
+    const related = Array.from({ length: 8 }, (_, index) => ({
+      ...product, id: index + 8, name: `Похожий товар ${index + 1}`,
+    }));
+    fetchMock.mockImplementation(async (url: string) => {
+      const path = new URL(url).pathname;
+      if (path.endsWith("/catalog/elements/7")) {
+        return json({ ...product, sections: [sections[1], sections[0], { ...sections[0], id: 3, active: false }] });
+      }
+      if (path.endsWith("/catalog/elements")) {
+        return json({ items: [product, ...related], pagination: { total: 9 } });
+      }
+      return handler(url);
+    });
     await mount(<StorefrontProduct id={7} />);
     expect(container.querySelector("h1")?.textContent).toBe("Клавиатура");
     expect(container.textContent?.replace(/\s/g, " ")).toContain("123,45 RUB");
     expect(container.textContent).toContain("Описание товара");
     expect(container.querySelector('a[href="/ru/category/2"]')).not.toBeNull();
     expect(container.querySelector('[aria-label="Нет изображения"]')).not.toBeNull();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/catalog\/elements\/7$/);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const requests = elementsRequests();
+    expect(requests).toHaveLength(1);
+    expect(Object.fromEntries(requests[0].searchParams)).toMatchObject({
+      active: "true", inStock: "true", page: "1", limit: "20",
+    });
+    expect(requests[0].searchParams.getAll("sectionIds[]")).toEqual(["2", "1"]);
+    expect(container.textContent).toContain("Похожие товары");
+    const grid = container.querySelector(".storefront-products");
+    expect(grid?.querySelectorAll(".storefront-product")).toHaveLength(6);
+    expect(grid?.querySelector('a[href="/ru/product/7"]')).toBeNull();
+    expect(grid?.querySelector('a[href="/ru/product/8"]')).not.toBeNull();
+  });
+
+  it("hides related products when the current product is the only match", async () => {
+    await mount(<StorefrontProduct id={7} />);
+    expect(elementsRequests()).toHaveLength(1);
+    expect(container.textContent).not.toContain("Похожие товары");
+    expect(container.querySelector(".storefront-products")).toBeNull();
+  });
+
+  it("skips the related products query without active sections", async () => {
+    fetchMock.mockImplementation(async () => json({
+      ...product, sections: [{ ...sections[1], active: false }],
+    }));
+    await mount(<StorefrontProduct id={7} />);
+    expect(elementsRequests()).toHaveLength(0);
+    expect(container.textContent).not.toContain("Похожие товары");
   });
 
   it.each([404, 503])("distinguishes missing products from service errors (%s)", async (status) => {
@@ -197,7 +238,10 @@ describe("catalog pages with real providers", () => {
   });
 
   it("uses the full API image and falls back when loading fails", async () => {
-    fetchMock.mockImplementation(async () => json({ ...product, picture: { fullUrl: "/full.webp", cardUrl: "/card.webp", alt: "Keyboard photo" } }));
+    const handler = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (url: string) => new URL(url).pathname.endsWith("/catalog/elements/7")
+      ? json({ ...product, picture: { fullUrl: "/full.webp", cardUrl: "/card.webp", alt: "Keyboard photo" } })
+      : handler(url));
     await mount(<StorefrontProduct id={7} />);
     const image = container.querySelector("img")!;
     expect(image.getAttribute("src")).toBe("/full.webp");

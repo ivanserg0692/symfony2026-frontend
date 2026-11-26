@@ -7,8 +7,8 @@ import Link from "next/link";
 import { useLocale } from "@/hooks/use-locale";
 import { getLocalizedPath } from "@/lib/i18n";
 import { catalogElements, catalogSections } from "@/providers/storefront-resources";
-import type { CatalogElement, CatalogSection } from "@/types/catalog";
-import { ProductCard } from "./catalog/product-card";
+import type { CatalogSection } from "@/types/catalog";
+import { ProductListSection } from "./catalog/product-list-section";
 
 const SectionsPreview = () => {
   const translate = useTranslate();
@@ -29,34 +29,6 @@ const SectionsPreview = () => {
         <ul className="storefront-sections">
           {result.data.slice(0, 8).map((item) => (
             <li key={item.id}><Card size="small"><Link href={getLocalizedPath(locale, `/category/${item.id}`)}>{item.name || translate("storefront.unnamedSection")}</Link></Card></li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-};
-
-const ProductsPreview = () => {
-  const translate = useTranslate();
-  const { result, query } = useList<CatalogElement>({
-    resource: catalogElements.name,
-    pagination: { currentPage: 1, pageSize: 5 },
-    filters: [{ field: "active", operator: "eq", value: true }],
-  });
-
-  return (
-    <section id="catalog" aria-labelledby="products-title">
-      <h2 id="products-title">{translate("storefront.products")}</h2>
-      {query.isLoading ? <Skeleton active /> : query.isError ? (
-        <Alert type="error" showIcon message={translate("storefront.productsError")} action={<Button onClick={() => void query.refetch()}>{translate("storefront.retry")}</Button>} />
-      ) : !result.data.length ? (
-        <Empty description={translate("storefront.productsEmpty")} image={Empty.PRESENTED_IMAGE_SIMPLE} />
-      ) : (
-        <ul className="storefront-products">
-          {result.data.map((item) => (
-            <li key={item.id}>
-              <ProductCard product={item} />
-            </li>
           ))}
         </ul>
       )}
@@ -115,7 +87,14 @@ export const StorefrontHome = () => {
         </div>
       </section>
       <SectionsPreview />
-      <ProductsPreview />
+      <ProductListSection
+          id="catalog"
+          resource={catalogElements.name}
+          title={translate("storefront.products")}
+          filters={[{ field: "active", operator: "eq", value: true }]}
+          limit={5}
+          emptyDescription={translate("storefront.productsEmpty")}
+      />
       <NewsPreview />
     </>
   );

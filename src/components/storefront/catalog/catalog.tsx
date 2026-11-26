@@ -9,7 +9,7 @@ import { useLocale } from "@/hooks/use-locale";
 import { getLocalizedPath, type Locale } from "@/lib/i18n";
 import type { CatalogElement, CatalogSection } from "@/types/catalog";
 import { CatalogFilterForm } from "./filters";
-import { ProductCard } from "./product-card";
+import { ProductGrid } from "./product-grid";
 import {
   CATALOG_PAGE_SIZE,
   catalogFilters,
@@ -267,11 +267,7 @@ export const StorefrontCatalog = ({ resource, sectionsResource, categoryId }: St
             ) : (
               <>
                 {!catalog.products.items.length ? <Empty description={translate("shop.noResults")} /> : (
-                  <ul className="storefront-products">
-                    {catalog.products.items.map((product) => (
-                      <li key={product.id}><ProductCard product={product} /></li>
-                    ))}
-                  </ul>
+                  <ProductGrid products={catalog.products.items} />
                 )}
                 <Pagination
                   current={url.value.page}

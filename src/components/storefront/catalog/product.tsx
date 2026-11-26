@@ -10,6 +10,8 @@ import type { CatalogElementDetail } from "@/types/catalog";
 import { AddToCart } from "../cart/add-to-cart";
 import { CatalogPicture } from "../catalog-picture";
 import { ProductPrice } from "./product-card";
+import { ProductListSection } from "./product-list-section";
+import { CATALOG_PAGE_SIZE } from "./query";
 
 export const StorefrontProduct = ({ id }: { id: number }) => {
   const translate = useTranslate();
@@ -22,6 +24,7 @@ export const StorefrontProduct = ({ id }: { id: number }) => {
     : <Alert type="error" message={translate("shop.productError")} action={<Button onClick={() => void query.refetch()}>{translate("storefront.retry")}</Button>} />;
   if (!product || product.active !== true) return <Result status="404" title={translate("shop.productNotFound")} extra={<Link href={catalogPath}>{translate("storefront.toCatalog")}</Link>} />;
   const name = product.name || translate("storefront.unnamedProduct");
+  const sections = product.sections.filter((section) => section.active === true);
   return <>
     <Breadcrumb items={[
       { title: <Link href={catalogPath}>{translate("storefront.catalog")}</Link> },
@@ -38,9 +41,23 @@ export const StorefrontProduct = ({ id }: { id: number }) => {
       <div className="storefront-detail__content">
         <section aria-labelledby="product-description"><h2 id="product-description">{translate("shop.description")}</h2><p className="storefront-detail__description">{product.description || translate("shop.noDescription")}</p></section>
         <section aria-labelledby="product-sections"><h2 id="product-sections">{translate("storefront.sections")}</h2>
-          <ul className="storefront-section-links">{product.sections.filter((section) => section.active === true).map((section) => <li key={section.id}><Link href={getLocalizedPath(locale, `/category/${section.id}`)}>{section.name || translate("storefront.unnamedSection")}</Link></li>)}</ul>
+          <ul className="storefront-section-links">{sections.map((section) => <li key={section.id}><Link href={getLocalizedPath(locale, `/category/${section.id}`)}>{section.name || translate("storefront.unnamedSection")}</Link></li>)}</ul>
         </section>
       </div>
     </article>
+    {sections.length > 0 && (
+      <ProductListSection
+        resource={catalogElements.name}
+        title={translate("storefront.relatedProducts")}
+        filters={[
+          { field: "active", operator: "eq", value: true },
+          { field: "sectionIds", operator: "in", value: sections.map((section) => section.id) },
+          { field: "inStock", operator: "eq", value: true },
+        ]}
+        limit={6}
+        pageSize={CATALOG_PAGE_SIZE}
+        excludeProductId={product.id}
+      />
+    )}
   </>;
 };

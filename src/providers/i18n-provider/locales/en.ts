@@ -44,6 +44,7 @@ export const en = {
     productsError: "Failed to load products.",
     sectionsEmpty: "No sections yet",
     productsEmpty: "No products yet",
+    relatedProducts: "Similar products",
     newsEmpty: "No news yet",
     unnamedSection: "Unnamed section",
     unnamedProduct: "Unnamed product",

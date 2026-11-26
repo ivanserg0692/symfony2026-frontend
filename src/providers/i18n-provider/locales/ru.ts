@@ -44,6 +44,7 @@ export const ru = {
     productsError: "Не удалось загрузить товары.",
     sectionsEmpty: "Разделов пока нет",
     productsEmpty: "Товаров пока нет",
+    relatedProducts: "Похожие товары",
     newsEmpty: "Новостей пока нет",
     unnamedSection: "Раздел без названия",
     unnamedProduct: "Товар без названия",
