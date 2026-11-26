@@ -12,7 +12,7 @@ import { safeLoginReturn } from "@/lib/login-return";
 import { authProviderClient } from "@/providers/auth-provider/auth-provider.client";
 import { dataProviders } from "@/providers/data-provider";
 import { storefrontResources } from "@/providers/storefront-resources";
-import { i18nProvider } from "@/providers/i18n-provider";
+import { createI18nProvider } from "@/providers/i18n-provider";
 import { AppThemeProvider } from "@/providers/theme-provider";
 import type { CartItem } from "@/types/cart";
 import type { CatalogElement } from "@/types/catalog";
@@ -40,7 +40,7 @@ const catalogProduct: CatalogElement = {
 function TestApp({ children }: PropsWithChildren) {
   return (
     <AppThemeProvider>
-      <Refine authProvider={authProviderClient} dataProvider={dataProviders} resources={storefrontResources} i18nProvider={i18nProvider}
+      <Refine authProvider={authProviderClient} dataProvider={dataProviders} resources={storefrontResources} i18nProvider={createI18nProvider("ru")}
         options={{ disableTelemetry: true }}>
         <CartProvider>{children}</CartProvider>
         <RefreshIdentity />

@@ -6,7 +6,8 @@ import { StorefrontHome } from "../../../src/components/storefront/home";
 import { StorefrontLayout } from "../../../src/components/storefront/layout";
 import { dataProviders } from "../../../src/providers/data-provider";
 import { storefrontResources } from "@/providers/storefront-resources";
-import { i18nProvider } from "../../../src/providers/i18n-provider";
+import { createI18nProvider } from "../../../src/providers/i18n-provider";
+import { defaultLocale, getLocaleFromPath } from "@/lib/i18n";
 import { AppThemeProvider } from "../../../src/providers/theme-provider";
 import { json } from "./api-mock";
 
@@ -47,6 +48,8 @@ describe("storefront home", () => {
   });
 
   const mount = async () => {
+    const locale = getLocaleFromPath(window.location.pathname) ?? defaultLocale;
+    const i18nProvider = createI18nProvider(locale);
     await act(async () => root.render(
       <AppThemeProvider>
         <Refine

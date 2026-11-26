@@ -1,11 +1,6 @@
 import type { I18nProvider } from "@refinedev/core";
 
-import {
-  defaultLocale,
-  getLocaleFromPath,
-  isLocale,
-  type Locale,
-} from "@/lib/i18n";
+import { isLocale, type Locale } from "@/lib/i18n";
 import { en } from "./locales/en";
 import { ru } from "./locales/ru";
 
@@ -13,8 +8,6 @@ const translations = {
   en,
   ru,
 };
-
-let currentLocale: Locale = defaultLocale;
 
 const getValueByPath = (messages: object, key: string): string | undefined => {
   return key.split(".").reduce<unknown>((value, segment) => {
@@ -39,46 +32,20 @@ const interpolate = (
   }, message);
 };
 
-const detectLocale = (): Locale => {
-  if (typeof window === "undefined") {
-    return currentLocale;
-  }
+export const createI18nProvider = (initialLocale: Locale): I18nProvider => {
+  let locale = initialLocale;
 
-  const pathLocale = getLocaleFromPath(window.location.pathname);
+  return {
+    translate: (key, params, defaultMessage) => {
+      const message = getValueByPath(translations[locale], key);
 
-  if (pathLocale) {
-    currentLocale = pathLocale;
-    window.localStorage.setItem("locale", pathLocale);
-    return pathLocale;
-  }
-
-  const storedLocale = window.localStorage.getItem("locale");
-
-  if (isLocale(storedLocale)) {
-    currentLocale = storedLocale;
-    return storedLocale;
-  }
-
-  return currentLocale;
-};
-
-export const i18nProvider: I18nProvider = {
-  translate: (key, params, defaultMessage) => {
-    const locale = detectLocale();
-    const message = getValueByPath(translations[locale], key);
-
-    return interpolate(message ?? defaultMessage ?? key, params);
-  },
-  changeLocale: (locale) => {
-    if (isLocale(locale)) {
-      currentLocale = locale;
-
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("locale", locale);
+      return interpolate(message ?? defaultMessage ?? key, params);
+    },
+    changeLocale: async (nextLocale) => {
+      if (isLocale(nextLocale)) {
+        locale = nextLocale;
       }
-    }
-
-    return Promise.resolve();
-  },
-  getLocale: () => detectLocale(),
+    },
+    getLocale: () => locale,
+  };
 };

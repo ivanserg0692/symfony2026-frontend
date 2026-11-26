@@ -8,7 +8,8 @@ import { StorefrontProduct } from "../../../src/components/storefront/catalog/pr
 import { StorefrontLayout } from "../../../src/components/storefront/layout";
 import { dataProviders } from "../../../src/providers/data-provider";
 import { catalogElements, catalogSections, storefrontResources } from "@/providers/storefront-resources";
-import { i18nProvider } from "../../../src/providers/i18n-provider";
+import { createI18nProvider } from "../../../src/providers/i18n-provider";
+import { defaultLocale, getLocaleFromPath } from "@/lib/i18n";
 import { AppThemeProvider } from "../../../src/providers/theme-provider";
 import { json } from "./api-mock";
 
@@ -56,6 +57,8 @@ describe("catalog pages with real providers", () => {
   afterEach(async () => { await act(async () => root.unmount()); container.remove(); localStorage.clear(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
   const mount = async (children: ReactNode) => {
+    const locale = getLocaleFromPath(window.location.pathname) ?? defaultLocale;
+    const i18nProvider = createI18nProvider(locale);
     await act(async () => root.render(<AppThemeProvider><Refine dataProvider={dataProviders} resources={storefrontResources} i18nProvider={i18nProvider}
       options={{ disableTelemetry: true, reactQuery: { clientConfig: { defaultOptions: { queries: { retry: false } } } } }}><CartProvider>{children}</CartProvider></Refine></AppThemeProvider>));
     await act(async () => { await vi.waitFor(() => expect(container.querySelector(".ant-skeleton")).toBeNull()); });

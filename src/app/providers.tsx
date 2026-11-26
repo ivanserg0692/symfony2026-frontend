@@ -4,15 +4,19 @@ import { DevtoolsProvider } from "@providers/devtools";
 import { Refine } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 import routerProvider from "@refinedev/nextjs-router";
-import type { PropsWithChildren } from "react";
+import { useMemo, type PropsWithChildren } from "react";
 
 import { authProviderClient } from "@providers/auth-provider/auth-provider.client";
 import { dataProviders } from "@providers/data-provider";
-import { i18nProvider } from "@providers/i18n-provider";
+import { createI18nProvider } from "@providers/i18n-provider";
+import { useLocale } from "@/hooks/use-locale";
 import { storefrontResources } from "@/providers/storefront-resources";
 import { AppThemeProvider } from "@providers/theme-provider";
 
 export const Providers = ({ children }: PropsWithChildren) => {
+  const locale = useLocale();
+  const i18nProvider = useMemo(() => createI18nProvider(locale), [locale]);
+
   return (
     <AppThemeProvider>
       <RefineKbarProvider>
